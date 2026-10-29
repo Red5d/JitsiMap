@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: npm ci (vendored lib tarballs — no floating versions)
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Map validator (§10.5)
+        run: npm run validate:maps
+      - name: Unit tests (§16.1)
+        run: npm test
+      - name: Production build
+        run: npm run build
+
+  # Optional smoke test for lib/Jitsi version bumps (§16.2). Requires a local
+  # full-mode stack; NOT part of the required gate. Run manually:
+  #   1. start full mode (README), 2. npm i -D @playwright/test && npx playwright install chromium
+  #   3. npx playwright test
+  e2e:
+    if: ${{ false }}  # enable manually
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm i -D @playwright/test@1.55.0 && npx playwright install --with-deps chromium
+      - run: npx playwright test

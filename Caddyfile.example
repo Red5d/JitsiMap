@@ -1,0 +1,47 @@
+# JitsiMap + Jitsi same-origin reverse proxy (SPEC §12.6) — example.
+# One domain, Caddy terminates TLS (auto-HTTPS for a real domain).
+#
+#   /  → JitsiMap app container (static + runtime config)
+#   Jitsi paths → jitsi `web` service (docker-compose.jitsi.yml)
+#
+# getUserMedia needs a secure context: use a real domain here, or run the
+# Jitsi web container's own https://localhost:8443 for single-machine tests.
+#
+# Dev-only plain-HTTP example (no TLS): http://jitsimap.localhost:8080 works
+# for the app shell; camera/mic testing needs https.
+
+meet.example.org {
+	# --- Jitsi paths FIRST (more specific than the SPA fallback) ---
+	handle /http-bind* {
+		reverse_proxy web:8000
+	}
+	handle /xmpp-websocket* {
+		reverse_proxy web:8000
+	}
+	handle /colibri-ws* {
+		reverse_proxy web:8000
+	}
+	handle /config.js* {
+		reverse_proxy web:8000
+	}
+	handle /external_api.js* {
+		reverse_proxy web:8000
+	}
+	handle /libs/* {
+		reverse_proxy web:8000
+	}
+	handle /static/* {
+		reverse_proxy web:8000
+	}
+	handle /interface/* {
+		reverse_proxy web:8000
+	}
+	handle /images/* {
+		reverse_proxy web:8000
+	}
+
+	# --- Everything else → JitsiMap (SPA fallback is the app's nginx) ---
+	handle {
+		reverse_proxy app:8080
+	}
+}

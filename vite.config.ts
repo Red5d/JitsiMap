@@ -15,6 +15,11 @@ export default defineConfig({
       '@jitsi/js-utils/browser-detection': fileURLToPath(
         new URL('./node_modules/@jitsi/js-utils/dist/browser-detection/index.js', import.meta.url),
       ),
+      // lib-jitsi-meet's ESM build imports Node's "events"; node's resolver
+      // prefers the builtin (unusable in browsers), so alias to the explicit
+      // npm polyfill file (dependency: events@3.3.0, MIT). Without this the
+      // production bundle externalizes it and rollup-on-alpine hard-fails.
+      events: fileURLToPath(new URL('./node_modules/events/events.js', import.meta.url)),
     },
   },
   server: {

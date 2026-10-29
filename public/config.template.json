@@ -1,0 +1,14 @@
+{
+  "jitsi": {
+    "domain": "${JITSI_DOMAIN}",
+    "muc": "${JITSI_MUC_DOMAIN:-conference.JITSI_DOMAIN}",
+    "websocket": "${JITSI_WEBSOCKET_URL:-wss://JITSI_DOMAIN/xmpp-websocket}",
+    "bosh": "${JITSI_BOSH_URL:-https://JITSI_DOMAIN/http-bind}",
+    "appId": ${JITSI_APP_ID:-__null__}
+  },
+  "auth": {
+    "mode": "${JITSI_AUTH_MODE:-anonymous}",
+    "tokenParam": "${JITSI_TOKEN_PARAM:-jwt}"
+  },
+  "defaultMap": "${DEFAULT_MAP:-office}"
+}
