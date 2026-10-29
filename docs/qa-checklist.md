@@ -199,23 +199,19 @@ Any violation that blocks signalling, ICE, or media = **release blocker**.
    deafen/master-volume, focus-visible CSS, localStorage scoping) was already
    correctly wired and is pinned by the new tests.
 
-## 5. Known issues / notes (deferred — not app-shell scope)
+## 5. Known issues / notes
 
-1. **`validate:maps` does not check zone-object geometry/props.** A map with
-   a zone `x: "oops"` validates OK; the runtime loader rejects it
-   (`parseMapData`, covered by map.test). Owner: `scripts/validate-maps.mjs`.
-2. **`vite preview` serves `/config.json` as 200 text/html** (SPA fallback)
-   when the file is absent — the app handles it correctly (JSON parse fails →
-   `ConfigError` → visible Lobby warning with the `JITSI_DOMAIN` hint, never a
-   crash), but production nginx must serve `/config.json` as a real file
-   (`location = /config.json { … }` with no SPA fallback).
-3. `docs/map-guide.md` and `docs/MAP-GUIDE.md` are a duplicate pair (case-only
-   difference) — collides on case-insensitive filesystems. Owner: docs.
-4. Panel file headers still say “PLACEHOLDER stub … panels agent owns” while
-   full implementations are in place — cosmetic header cleanup. Owner: panels.
-5. `docker-compose`/`Dockerfile`/nginx CSP deliverables are not in this repo
-   at QA time (Docker agent owns them); §16.2 browser-matrix items that need a
-   real stack (§16.3 items 1–11) remain open below.
+1. **Resolved:** `validate:maps` now rejects non-numeric zone geometry
+   (`scripts/maplib.mjs` → “non-numeric geometry”, pinned by map.test), so the
+   validator and the runtime loader share the same verdict (§10.5).
+2. **Dev-only:** `vite preview` serves `/config.json` as 200 text/html (SPA
+   fallback) when the file is absent — the app handles it (Lobby warning with
+   the `JITSI_DOMAIN` hint, never a crash). The delivered nginx template serves
+   a real rendered file with security headers and no fallback for that path.
+3. `npm run lint` is `biome check .`; the per-directory rule policy lives in
+   `biome.json` (custom ARIA-role controls, fixture `any`, lib-interop `any`).
+4. Remaining open scope: the §16.3 manual two-browser matrix (needs a live
+   Jitsi stack) and the Playwright e2e smoke (see README).
 
 ---
 
