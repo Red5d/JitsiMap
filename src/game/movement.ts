@@ -22,6 +22,18 @@ export const AVATAR_RADIUS = 10;
 /** Waypoint arrival distance for click-to-move. */
 const WAYPOINT_EPS = 4;
 
+/**
+ * True when the active element is a DOM text field (input/textarea/select or
+ * contentEditable): keyboard game input (WASD/arrows/E) must yield to typing
+ * (§5.3). Duck-typed so it is node-testable.
+ */
+export function isTypingTarget(el: unknown): boolean {
+  if (!el || typeof el !== 'object') return false;
+  const t = el as { tagName?: unknown; isContentEditable?: unknown };
+  const tag = typeof t.tagName === 'string' ? t.tagName.toUpperCase() : '';
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t.isContentEditable === true;
+}
+
 export interface TilePos {
   col: number;
   row: number;
@@ -202,10 +214,14 @@ export class MovementController {
     this.y = spawn.y;
     const kb = scene.input.keyboard;
     if (kb) {
-      this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Partial<
+      // enableCapture=false: Phaser's default preventDefault on captured keys
+      // blocks typing WASD/arrows into DOM inputs (chat, settings).
+      this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT', false) as Partial<
         Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT', Phaser.Input.Keyboard.Key>
       >;
-      kb.on('keydown-E', () => this.opts.onLocalEmote?.());
+      kb.on('keydown-E', () => {
+        if (!isTypingTarget(document.activeElement)) this.opts.onLocalEmote?.();
+      });
     }
     scene.input.on('pointerdown', this.pointerDown);
   }
@@ -233,10 +249,14 @@ export class MovementController {
     let vx = 0;
     let vy = 0;
     const k = this.keys;
-    if (k.W?.isDown || k.UP?.isDown) vy -= 1;
-    if (k.S?.isDown || k.DOWN?.isDown) vy += 1;
-    if (k.A?.isDown || k.LEFT?.isDown) vx -= 1;
-    if (k.D?.isDown || k.RIGHT?.isDown) vx += 1;
+    // While the user types in a DOM text field (chat, settings…), keyboard
+    // game input must yield (§5.3): WASD belongs to the message, not the map.
+    if (!isTypingTarget(document.activeElement)) {
+      if (k.W?.isDown || k.UP?.isDown) vy -= 1;
+      if (k.S?.isDown || k.DOWN?.isDown) vy += 1;
+      if (k.A?.isDown || k.LEFT?.isDown) vx -= 1;
+      if (k.D?.isDown || k.RIGHT?.isDown) vx += 1;
+    }
 
     const keyboardActive = vx !== 0 || vy !== 0;
     if (keyboardActive)
