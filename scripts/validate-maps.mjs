@@ -172,6 +172,12 @@ export async function validateMap(obj, options = {}) {
       continue;
     }
     byId.set(zone.id, zone);
+    if (![zone.x, zone.y, zone.w, zone.h].every((n) => Number.isFinite(n))) {
+      errors.push(
+        `zone "${zone.id}" has non-numeric geometry (${zone.x},${zone.y} ${zone.w}x${zone.h}); rectangle objects need numeric x/y/width/height`
+      );
+      continue;
+    }
     if (zone.w <= 0 || zone.h <= 0) errors.push(`zone "${zone.id}" has zero size (${zone.w}x${zone.h}); zone objects must be rectangles`);
     if (zone.x < 0 || zone.y < 0 || zone.x + zone.w > width * TILE_SIZE || zone.y + zone.h > height * TILE_SIZE) {
       errors.push(
