@@ -1,0 +1,37 @@
+{
+  "name": "jitsimap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate:maps": "node scripts/validate-maps.mjs",
+    "preview:map": "node scripts/render-map-preview.mjs"
+  },
+  "overrides": {
+    "strophe.js": "file:vendor/strophe.js-1.5.0.tgz"
+  },
+  "dependencies": {
+    "lib-jitsi-meet": "file:vendor/lib-jitsi-meet.tgz",
+    "phaser": "3.90.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.32",
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.5.2",
+    "typescript": "5.8.3",
+    "vite": "6.3.5",
+    "vitest": "3.2.4"
+  }
+}
