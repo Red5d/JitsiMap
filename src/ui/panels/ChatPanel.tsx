@@ -37,7 +37,7 @@ export function ChatPanel({ onSend }: ChatPanelProps) {
   return (
     <div className="jm-chat">
       <p className="jm-chat__note">Chat is heard everywhere.</p>
-      <ul className="jm-chat__list" ref={listRef}>
+      <ul className="jm-chat__list" ref={listRef} role="log" aria-live="polite">
         {chat.length === 0 && <li className="jm-chat__empty">No messages yet.</li>}
         {chat.map((m) => (
           <li className="jm-chat__msg" key={m.id}>
