@@ -618,7 +618,7 @@ export function createJitsiClient(config: RuntimeConfig, store: Store): JitsiCli
           config.auth.mode === 'jwt-token' ? config.auth.token : null,
           {
             hosts: {
-              domain: config.jitsi.domain,
+              domain: config.jitsi.xmppDomain,
               muc: config.jitsi.muc,
             },
             serviceUrl: config.jitsi.websocket,

@@ -7,7 +7,10 @@ import type { AuthMode } from './types';
 
 export interface RuntimeConfig {
   jitsi: {
+    /** Public HTTPS host (websocket/bosh URLs, app id). */
     domain: string;
+    /** XMPP domain in `hosts.domain` — differs on docker-jitsi-meet stacks (meet.jitsi). */
+    xmppDomain: string;
     muc: string;
     websocket: string;
     bosh: string;
@@ -27,6 +30,7 @@ export class ConfigError extends Error {}
 interface RawConfig {
   jitsi?: {
     domain?: unknown;
+    xmppDomain?: unknown;
     muc?: unknown;
     websocket?: unknown;
     bosh?: unknown;
@@ -74,6 +78,7 @@ export function parseRuntimeConfig(raw: unknown, search: string = location.searc
   return {
     jitsi: {
       domain,
+      xmppDomain: str(j.xmppDomain) ?? domain,
       muc: str(j.muc) ?? `conference.${domain}`,
       websocket: str(j.websocket) ?? `wss://${domain}/xmpp-websocket`,
       bosh: str(j.bosh) ?? `https://${domain}/http-bind`,

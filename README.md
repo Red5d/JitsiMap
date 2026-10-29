@@ -33,27 +33,41 @@ The Jitsi deployment must accept requests from the app's origin (CORS) —
 the simplest topology is one domain with a reverse proxy (see
 [Caddyfile.example](Caddyfile.example) and §TLS below).
 
+**Standard docker-jitsi-meet deployments** address XMPP over internal
+domains — set these in `.env` alongside `JITSI_DOMAIN`:
+`JITSI_XMPP_DOMAIN=meet.jitsi`, `JITSI_MUC_DOMAIN=muc.meet.jitsi`
+(the defaults `conference.<domain>` only fit deployments configured that
+way). `docker/gen-env.sh` sets them for full mode.
+
 ## Quickstart B — full mode (app + pinned Jitsi stack on one host)
 
-Requirements: a 2 vCPU / 4 GB host is comfortable for ~20 users, a **real
-domain with TLS** (getUserMedia needs a secure context), Docker Compose.
+Requirements: a 2 vCPU / 4 GB host is comfortable for ~20 users, TLS for
+getUserMedia (the local flow below uses a self-signed cert), Docker Compose.
+
+**Local testing (one command sequence, no domain needed):**
 
 ```bash
-cp .env.example .env
-# 1. Set PUBLIC_URL=https://meet.example.org (Jitsi) and JITSI_DOMAIN=meet.example.org (app).
-# 2. Generate the stack secrets (containers refuse to start with defaults):
-#    fetch https://raw.githubusercontent.com/jitsi/docker-jitsi-meet/stable-11248-2/gen-passwords.sh
-#    then:  bash gen-passwords.sh .env
-docker compose -f docker-compose.yml -f docker-compose.jitsi.yml --profile full up -d
+sh docker/gen-env.sh          # writes .env: JITSI_DOMAIN=localhost, https://localhost:8443, generated secrets
+docker compose -f docker-compose.yml -f docker-compose.jitsi.yml --profile full up -d --build
+# 1. Open https://localhost:8443 once and accept the self-signed certificate
+#    (the browser must trust it before the app's websocket/tile loads succeed).
+# 2. Open http://localhost:8080/s/test and join. Second browser = second peer.
 ```
+
+`docker/gen-env.sh` also creates the `CONFIG` directory tree the stack
+bind-mounts (`.jitsi-meet-cfg/`, git-ignored). Passwords are generated with
+`openssl`; the file is secrets-complete — no upstream `gen-passwords.sh`
+fetch needed.
+
+**Public deployment:** same as upstream docker-jitsi-meet — set
+`PUBLIC_URL`/`JITSI_DOMAIN` to your real domain (pass them to
+`docker/gen-env.sh` as env overrides, or follow the upstream handbook for
+your `.env`), TLS via Let's Encrypt or the reverse proxy below, then
+the same `docker compose -f ... --profile full up -d` command.
 
 The Jitsi services are the **vendored upstream compose** of the pinned
 release `stable-11248-2` (see the header of `docker-compose.jitsi.yml`; the
 env surface is that release's `env.example`, embedded in `.env.example`).
-For single-machine testing you can skip the proxy and use the Jitsi web
-container's own `https://localhost:8443` (self-signed) with the app on
-`http://localhost:8080`; point `JITSI_DOMAIN` at `localhost:8443`
-accordingly.
 
 Pinned versions (see `docs/lib-surface.md` for hashes and the verified API
 surface):
@@ -115,6 +129,23 @@ Four ways to author (all share one validator):
      launching the app.
 
 Tileset: Kenney "Tiny Dungeon" (CC0) — see `public/maps/CREDITS.md`.
+
+### Adding maps at runtime (no image rebuild)
+
+The built-in `public/maps/` is baked into the image, but the app container
+also merges a host directory into `/maps/` at startup:
+
+1. Drop `<id>.tmj` (plus tileset PNGs, e.g. `tilesets/my-sheet.png`) into
+   `maps-extra/` next to the compose file (override the dir with
+   `MAPS_EXTRA_DIR=/path/to/maps`).
+2. Validate first: `npm run validate:maps -- maps-extra/<id>.tmj`.
+3. `docker compose restart app`, then join
+   `http(s)://<app-host>/s/<space>?map=<id>` — or set `DEFAULT_MAP=<id>`.
+
+The merge adds/overwrites by filename and never deletes built-ins; map
+responses cache 1 h, so use fresh ids or restart. Keep `<id>` lowercase
+(`[a-z0-9-_]` — the URL param is sanitized). Dev equivalent: put files in
+`public/maps/` (vite serves it directly).
 
 ## TLS / reverse proxy
 

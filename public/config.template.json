@@ -1,6 +1,7 @@
 {
   "jitsi": {
     "domain": "${JITSI_DOMAIN}",
+    "xmppDomain": "${JITSI_XMPP_DOMAIN:-JITSI_DOMAIN}",
     "muc": "${JITSI_MUC_DOMAIN:-conference.JITSI_DOMAIN}",
     "websocket": "${JITSI_WEBSOCKET_URL:-wss://JITSI_DOMAIN/xmpp-websocket}",
     "bosh": "${JITSI_BOSH_URL:-https://JITSI_DOMAIN/http-bind}",

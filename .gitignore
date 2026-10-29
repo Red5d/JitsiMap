@@ -7,5 +7,6 @@ coverage/
 !.env.example
 .DS_Store
 CONFIG/
+.jitsi-meet-cfg/
 test-results/
 playwright-report/
