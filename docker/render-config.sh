@@ -45,7 +45,15 @@ render() {
 if [ "${1:-}" = "--nginx" ]; then
   [ $# -eq 1 ] || { echo "usage: render-config.sh --nginx" >&2; exit 2; }
   : "${JITSI_DOMAIN:?JITSI_DOMAIN is required (SPEC §13)}"
-  CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: mediastream:; connect-src 'self' blob: data: wss://${JITSI_DOMAIN} wss://*.${JITSI_DOMAIN} https://${JITSI_DOMAIN} https://*.${JITSI_DOMAIN}; worker-src 'self' blob:; child-src 'self' blob:; font-src 'self' data:; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
+  # CSP3 port matching is strict: a portless source (wss://host) matches only
+  # the scheme's default port. The client dials the EXACT websocket/bosh
+  # origins, so derive those origins (scheme://host[:port]) from the URLs.
+  _origin() { _u="$1"; _a="${_u#*://}"; printf '%s://%s' "${_u%%://*}" "${_a%%/*}"; }
+  _ws="${JITSI_WEBSOCKET_URL:-wss://${JITSI_DOMAIN}/xmpp-websocket}"
+  _bosh="${JITSI_BOSH_URL:-https://${JITSI_DOMAIN}/http-bind}"
+  EXTRA_CONNECT="$(_origin "$_ws") $(_origin "$_bosh")"
+  [ "$EXTRA_CONNECT" = "wss://${JITSI_DOMAIN} https://${JITSI_DOMAIN}" ] && EXTRA_CONNECT=""
+  CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: mediastream:; connect-src 'self' blob: data: ${EXTRA_CONNECT} wss://${JITSI_DOMAIN} wss://*.${JITSI_DOMAIN} https://${JITSI_DOMAIN} https://*.${JITSI_DOMAIN}; worker-src 'self' blob:; child-src 'self' blob:; font-src 'self' data:; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
   export CSP
   mkdir -p /etc/nginx/snippets
   cat > /etc/nginx/snippets/security-headers.conf <<CSP_EOF
