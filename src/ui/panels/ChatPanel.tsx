@@ -4,8 +4,8 @@
  * helper is identity-by-design and applied at the render seam.
  */
 
-import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useStore } from '../hooks';
 import { chatTextContent, formatChatTime } from '../util';
@@ -19,6 +19,7 @@ export function ChatPanel({ onSend }: ChatPanelProps) {
   const [text, setText] = useState('');
   const listRef = useRef<HTMLUListElement>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on new messages (length is the trigger by design)
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;

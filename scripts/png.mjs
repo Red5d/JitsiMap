@@ -153,12 +153,23 @@ export function decodePng(buf) {
       const v = line[x];
       let value;
       switch (filter) {
-        case 0: value = v; break;
-        case 1: value = v + a; break;
-        case 2: value = v + b; break;
-        case 3: value = v + ((a + b) >> 1); break;
-        case 4: value = v + paeth(a, b, c); break;
-        default: throw new Error(`decodePng: bad filter ${filter} on row ${y}`);
+        case 0:
+          value = v;
+          break;
+        case 1:
+          value = v + a;
+          break;
+        case 2:
+          value = v + b;
+          break;
+        case 3:
+          value = v + ((a + b) >> 1);
+          break;
+        case 4:
+          value = v + paeth(a, b, c);
+          break;
+        default:
+          throw new Error(`decodePng: bad filter ${filter} on row ${y}`);
       }
       cur[x] = value & 0xff;
     }
@@ -167,7 +178,10 @@ export function decodePng(buf) {
   // Expand to RGBA.
   const data = Buffer.alloc(width * height * 4);
   for (let i = 0; i < width * height; i++) {
-    let r = 0, g = 0, b = 0, a = 255;
+    let r = 0,
+      g = 0,
+      b = 0,
+      a = 255;
     if (colorType === 0) {
       r = g = b = out[i];
       if (trns && trns.length >= 2) {
@@ -175,13 +189,16 @@ export function decodePng(buf) {
         if (out[i] === t) a = 0;
       }
     } else if (colorType === 2) {
-      r = out[i * 3]; g = out[i * 3 + 1]; b = out[i * 3 + 2];
+      r = out[i * 3];
+      g = out[i * 3 + 1];
+      b = out[i * 3 + 2];
       if (trns && trns.length >= 6) {
         if (
           out[i * 3] === trns.readUInt16BE(0) &&
           out[i * 3 + 1] === trns.readUInt16BE(2) &&
           out[i * 3 + 2] === trns.readUInt16BE(4)
-        ) a = 0;
+        )
+          a = 0;
       }
     } else if (colorType === 3) {
       const idx = out[i];
@@ -193,7 +210,10 @@ export function decodePng(buf) {
       r = g = b = out[i * 2];
       a = out[i * 2 + 1];
     } else {
-      r = out[i * 4]; g = out[i * 4 + 1]; b = out[i * 4 + 2]; a = out[i * 4 + 3];
+      r = out[i * 4];
+      g = out[i * 4 + 1];
+      b = out[i * 4 + 2];
+      a = out[i * 4 + 3];
     }
     data[i * 4] = r;
     data[i * 4 + 1] = g;

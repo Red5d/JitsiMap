@@ -78,9 +78,7 @@ export interface ZoneDef {
   h: number;
   properties: Record<string, unknown>;
 }
-export function extractZones(
-  doc: any,
-): { zones: ZoneDef[]; warnings: string[]; errors: string[] };
+export function extractZones(doc: any): { zones: ZoneDef[]; warnings: string[]; errors: string[] };
 
 export interface SpawnDef {
   id: string;

@@ -1,6 +1,6 @@
 // @ts-nocheck — Playwright is an OPTIONAL devDependency (README §Smoke test):
 // install it (`npm i -D @playwright/test`) before typechecking this dir.
-import { test, expect, type BrowserContext } from '@playwright/test';
+import { type BrowserContext, expect, test } from '@playwright/test';
 
 /**
  * §16.2 integration smoke — the gate for lib-jitsi-meet / docker-jitsi-meet

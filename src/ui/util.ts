@@ -7,15 +7,12 @@
  */
 
 import { normalizeSpaceName } from '../config';
-import { distanceTiles, zoneAudible, VIDEO_RADIUS_TILES } from '../spatial/distance';
+import { distanceTiles, VIDEO_RADIUS_TILES, zoneAudible } from '../spatial/distance';
 import { isPoseLess, type Pose, type ReceivedPose, type RemoteState, type ZoneDef } from '../types';
 
 // ---------------------------------------------------------------- routing (§5.1/§6.2)
 
-export type Route =
-  | { kind: 'root' }
-  | { kind: 'space'; space: string }
-  | { kind: 'notfound' };
+export type Route = { kind: 'root' } | { kind: 'space'; space: string } | { kind: 'notfound' };
 
 /** `/s/<space>` → the space name; anything else → null. */
 export function spaceFromPath(pathname: string): string | null {
@@ -78,8 +75,8 @@ export function bubbleVisible(
   const t = p.pose?.target;
   if (!t || !localPose) return false;
   if (distanceTiles(localPose.x, localPose.y, t.x, t.y) > VIDEO_RADIUS_TILES) return false;
-  const speakerZone = t.zone ? zones.get(t.zone) ?? null : null;
-  const listenerZone = localPose.zone ? zones.get(localPose.zone) ?? null : null;
+  const speakerZone = t.zone ? (zones.get(t.zone) ?? null) : null;
+  const listenerZone = localPose.zone ? (zones.get(localPose.zone) ?? null) : null;
   return zoneAudible(speakerZone, listenerZone);
 }
 
@@ -111,7 +108,7 @@ export function peopleStatusLabel(
   const t = p.pose?.target ?? null;
   if (!t) return isPoseLess(p, now) ? POSELESS_LABEL : 'joining…';
   const parts: string[] = [];
-  const zone = t.zone ? zones.get(t.zone) ?? null : null;
+  const zone = t.zone ? (zones.get(t.zone) ?? null) : null;
   if (zone) parts.push(zone.label ?? zone.id);
   if (localPose) parts.push(`~${Math.round(distanceTiles(localPose.x, localPose.y, t.x, t.y))} tiles`);
   return parts.length > 0 ? parts.join(' · ') : 'on the map';
@@ -158,15 +155,15 @@ export function shareCandidates(
   zones: ReadonlyMap<string, ZoneDef>,
   localId: string | null,
 ): ShareCandidate[] {
-  const listenerZone = localPose?.zone ? zones.get(localPose.zone) ?? null : null;
+  const listenerZone = localPose?.zone ? (zones.get(localPose.zone) ?? null) : null;
   return sharers
     .filter((p) => p.desktopTrack && p.id !== localId)
     .map((p) => {
-      const zone = p.pose?.target.zone ? zones.get(p.pose.target.zone) ?? null : null;
+      const zone = p.pose?.target.zone ? (zones.get(p.pose.target.zone) ?? null) : null;
       return {
         id: p.id,
         name: p.name || 'Someone',
-        zoneLabel: zone ? zone.label ?? zone.id : null,
+        zoneLabel: zone ? (zone.label ?? zone.id) : null,
         viewable: zoneAudible(zone, listenerZone),
       };
     });

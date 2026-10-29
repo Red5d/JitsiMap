@@ -437,10 +437,7 @@ declare module 'lib-jitsi-meet' {
     addEventListener(event: 'conference.joined', listener: () => void): void;
     addEventListener(event: 'conference.join_in_progress', listener: () => void): void;
     addEventListener(event: 'conference.left', listener: () => void): void;
-    addEventListener(
-      event: 'conference.failed',
-      listener: (error: string, ...params: any[]) => void,
-    ): void;
+    addEventListener(event: 'conference.failed', listener: (error: string, ...params: any[]) => void): void;
     addEventListener(event: 'conference.connectionEstablished', listener: () => void): void;
     addEventListener(event: 'conference.connectionInterrupted', listener: () => void): void;
     addEventListener(event: 'conference.connectionRestored', listener: () => void): void;
@@ -455,10 +452,7 @@ declare module 'lib-jitsi-meet' {
       listener: (id: string, participant?: JitsiParticipant, reason?: string) => void,
     ): void;
     addEventListener(event: 'conference.roleChanged', listener: (id: string, role: string) => void): void;
-    addEventListener(
-      event: 'conference.displayNameChanged',
-      listener: (id: string, displayName: string) => void,
-    ): void;
+    addEventListener(event: 'conference.displayNameChanged', listener: (id: string, displayName: string) => void): void;
     addEventListener(event: 'conference.trackAdded', listener: (track: JitsiTrack) => void): void;
     addEventListener(event: 'conference.trackRemoved', listener: (track: JitsiTrack) => void): void;
     addEventListener(event: 'conference.trackMuteChanged', listener: (track: JitsiTrack) => void): void;
@@ -466,7 +460,10 @@ declare module 'lib-jitsi-meet' {
       event: 'conference.audioLevelsChanged',
       listener: (participantId: string, audioLevel: number) => void,
     ): void;
-    addEventListener(event: 'conference.dominantSpeaker', listener: (id: string, previous: string | null) => void): void;
+    addEventListener(
+      event: 'conference.dominantSpeaker',
+      listener: (id: string, previous: string | null) => void,
+    ): void;
     /** Verified shape: POSITIONAL args (participantId, txt, ts, displayName, isVisitor, messageId, source, replyToId) — NOT a single object. */
     addEventListener(
       event: 'conference.messageReceived',
@@ -497,19 +494,11 @@ declare module 'lib-jitsi-meet' {
     ): void;
     addEventListener(
       event: 'conference.lastNEndpointsChanged',
-      listener: (
-        enteringEndpoints: string[],
-        leavingEndpoints: string[],
-        currentEndpoints: string[],
-      ) => void,
+      listener: (enteringEndpoints: string[], leavingEndpoints: string[], currentEndpoints: string[]) => void,
     ): void;
     addEventListener(
       event: 'conference.forwardedSourcesChanged',
-      listener: (
-        forwardedSources: string[],
-        creatingSources: string[],
-        expiredSources: string[],
-      ) => void,
+      listener: (forwardedSources: string[], creatingSources: string[], expiredSources: string[]) => void,
     ): void;
     addEventListener(event: string, listener: (...args: any[]) => void): void;
     removeEventListener(event: string, listener?: (...args: any[]) => void): void;
@@ -554,7 +543,9 @@ declare module 'lib-jitsi-meet' {
     getLastN(): number;
     getForwardedSources(): string[];
     /** Exists in the pinned version (SPEC §8.4 assumption holds). */
-    setAudioSubscriptionMode(message: IReceiverAudioSubscriptionMessage | ILegacyReceiverAudioSubscriptionMessage): void;
+    setAudioSubscriptionMode(
+      message: IReceiverAudioSubscriptionMessage | ILegacyReceiverAudioSubscriptionMessage,
+    ): void;
   }
 
   /** JitsiConnection (JitsiConnection.js). Constructor is the exported const. */

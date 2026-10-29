@@ -33,10 +33,7 @@ export function StagePanel({ participantId, onDismiss }: StagePanelProps) {
   if (!sharer) return null;
 
   return (
-    <section
-      className="jm-stage"
-      aria-label={`${sharer.name || 'Someone'} is sharing their screen`}
-    >
+    <section className="jm-stage" aria-label={`${sharer.name || 'Someone'} is sharing their screen`}>
       <header className="jm-stage__head">
         <span>
           <span className="jm-stage__name">{sharer.name || 'Someone'}</span> is sharing their screen

@@ -188,7 +188,7 @@ export function BottomBar({
         Leave
       </button>
 
-      <span className="jm-bar__zone">📍 {localZone ? localZone.label ?? localZone.id : 'Open map'}</span>
+      <span className="jm-bar__zone">📍 {localZone ? (localZone.label ?? localZone.id) : 'Open map'}</span>
     </div>
   );
 }

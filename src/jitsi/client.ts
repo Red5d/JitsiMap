@@ -15,21 +15,16 @@
  * the factory.
  */
 
+import type { ILocalTrackOptions, JitsiConference, JitsiConnection, JitsiLocalTrack } from 'lib-jitsi-meet';
 import JitsiMeetJS from 'lib-jitsi-meet';
-import type {
-  ILocalTrackOptions,
-  JitsiConference,
-  JitsiConnection,
-  JitsiLocalTrack,
-} from 'lib-jitsi-meet';
 
 import type { RuntimeConfig } from '../config';
-import type { Store } from '../store';
 import type { ValidationCtx } from '../protocol';
+import type { Store } from '../store';
 import type { AvatarInfo, MapData } from '../types';
 import type { JitsiClient, JoinOptions, VideoPlan } from './api';
-import { MessagingHub } from './messaging';
 import { applyReceiverConstraints } from './constraints';
+import { MessagingHub } from './messaging';
 import { attachVideo, detachVideo, getTrackVideoType, stopUnderlyingTrack } from './tracks';
 
 const CE = JitsiMeetJS.events.conference;
@@ -105,21 +100,6 @@ export function createJitsiClient(config: RuntimeConfig, store: Store): JitsiCli
   function on(target: HandlerRecord['target'], event: string, fn: (...args: any[]) => void): void {
     handlers.push({ target, event, fn });
     target.addEventListener(event, fn);
-  }
-
-  function removeAllHandlers(): void {
-    for (const h of handlers) {
-      try {
-        h.target.removeEventListener(h.event, h.fn);
-      } catch {
-        /* target already torn down */
-      }
-    }
-    handlers.length = 0;
-  }
-
-  function myId(): string {
-    return conference?.myUserId() ?? '';
   }
 
   function settleJoin(ok: boolean, msg?: string): void {
@@ -348,7 +328,7 @@ export function createJitsiClient(config: RuntimeConfig, store: Store): JitsiCli
       if (id === conf.myUserId()) return;
       store.upsertParticipant(id, {
         joinedAt: Date.now(),
-        name: (participant && participant.getDisplayName()) || '',
+        name: participant?.getDisplayName() || '',
       });
     });
 
@@ -433,8 +413,7 @@ export function createJitsiClient(config: RuntimeConfig, store: Store): JitsiCli
         messageId?: string,
       ) => {
         const self = participantId === conf.myUserId();
-        const name =
-          displayName || store.getParticipant(participantId)?.name || participantId;
+        const name = displayName || store.getParticipant(participantId)?.name || participantId;
         store.addChat({
           id: messageId ?? `${ts}-${participantId}`,
           from: participantId,
@@ -650,7 +629,11 @@ export function createJitsiClient(config: RuntimeConfig, store: Store): JitsiCli
         const settle = (ok: boolean, msg?: string): void => {
           if (settled) return;
           settled = true;
-          if (ok) onEstablished(opts).then(() => resolve(), (e: unknown) => reject(e instanceof Error ? e : new Error(String(e))));
+          if (ok)
+            onEstablished(opts).then(
+              () => resolve(),
+              (e: unknown) => reject(e instanceof Error ? e : new Error(String(e))),
+            );
           else reject(new Error(msg ?? 'Connection failed.'));
         };
         on(conn, COE.CONNECTION_ESTABLISHED, () => settle(true));

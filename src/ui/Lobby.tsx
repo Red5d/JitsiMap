@@ -12,16 +12,15 @@
  */
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-
-import { ConfigError, loadRuntimeConfig, normalizeSpaceName, stripJwtFromUrl } from '../config';
 import type { RuntimeConfig } from '../config';
+import { ConfigError, loadRuntimeConfig, normalizeSpaceName, stripJwtFromUrl } from '../config';
 import { loadMap } from '../game/maps';
-import { store } from '../store';
 import { createAudioEngine } from '../spatial/audioEngine';
-import { EMOJI_SET, type AvatarInfo } from '../types';
+import { store } from '../store';
+import { type AvatarInfo, EMOJI_SET } from '../types';
 import { navigate, useLocation, useStore } from './hooks';
-import { pathForSpace } from './util';
 import type { Session } from './session';
+import { pathForSpace } from './util';
 
 // ---------------------------------------------------------------- join state machine
 
@@ -252,9 +251,7 @@ export function Lobby({ space, onJoined }: LobbyProps) {
         </div>
         <p className="jm-lobby__subtitle">
           <span className="jm-lobby__map">Map: {mapId}</span>
-          {config?.auth.mode === 'jwt-guest' && (
-            <> · this space requires a host to open it first</>
-          )}
+          {config?.auth.mode === 'jwt-guest' ? ' · this space requires a host to open it first' : null}
         </p>
 
         <label className="jm-label" htmlFor="jm-name">
@@ -347,10 +344,7 @@ export function Lobby({ space, onJoined }: LobbyProps) {
         )}
 
         {(join.phase === 'failed' || join.phase === 'waiting-host') && (
-          <div
-            className={join.phase === 'waiting-host' ? 'jm-alert jm-alert--warn' : 'jm-alert'}
-            role="alert"
-          >
+          <div className={join.phase === 'waiting-host' ? 'jm-alert jm-alert--warn' : 'jm-alert'} role="alert">
             {join.phase === 'waiting-host' ? '⏳ ' : '⚠️ '}
             {join.message ?? snap.lastError ?? 'The join failed. Check your connection and Retry.'}
             <div className="jm-alert__actions">

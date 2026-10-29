@@ -4,7 +4,7 @@
  * pan clamping. No browser APIs here.
  */
 
-import { TILE_SIZE, type Pose, type ZoneDef } from '../types';
+import { type Pose, TILE_SIZE, type ZoneDef } from '../types';
 
 export const FULL_RADIUS_TILES = 2;
 export const HEAR_RADIUS_TILES = 8;
@@ -30,7 +30,7 @@ export function distanceGain(dTiles: number): number {
   if (dTiles <= FULL_RADIUS_TILES) return 1;
   if (dTiles >= HEAR_RADIUS_TILES) return 0;
   const t = (HEAR_RADIUS_TILES - dTiles) / (HEAR_RADIUS_TILES - FULL_RADIUS_TILES);
-  return Math.pow(Math.min(Math.max(t, 0), 1), 1.5);
+  return Math.min(Math.max(t, 0), 1) ** 1.5;
 }
 
 /**
@@ -56,7 +56,7 @@ export function panFor(speakerX: number, listenerX: number): number {
  */
 export function zoneAudible(
   speakerZone: ZoneDef | null | undefined,
-  listenerZone: ZoneDef | null | undefined
+  listenerZone: ZoneDef | null | undefined,
 ): boolean {
   if (speakerZone?.silent) return false;
   if (!speakerZone && !listenerZone) return true;
@@ -73,7 +73,7 @@ export function zoneAudible(
 export function spatialGain(
   listener: Pick<Pose, 'x' | 'y' | 'zone'>,
   speaker: Pick<Pose, 'x' | 'y' | 'zone'>,
-  zones: ReadonlyMap<string, ZoneDef>
+  zones: ReadonlyMap<string, ZoneDef>,
 ): number {
   const lz = listener.zone ? (zones.get(listener.zone) ?? null) : null;
   const sz = speaker.zone ? (zones.get(speaker.zone) ?? null) : null;

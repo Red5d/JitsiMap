@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { store, type Snapshot } from '../store';
+import { type Snapshot, store } from '../store';
 
 /** Re-render on every store snapshot change. */
 export function useStore(): Snapshot {
@@ -23,8 +23,7 @@ export function useLocation(): LocationView {
     search: location.search,
   }));
   useEffect(() => {
-    const sync = (): void =>
-      setLoc({ pathname: location.pathname, search: location.search });
+    const sync = (): void => setLoc({ pathname: location.pathname, search: location.search });
     window.addEventListener('popstate', sync);
     return () => window.removeEventListener('popstate', sync);
   }, []);

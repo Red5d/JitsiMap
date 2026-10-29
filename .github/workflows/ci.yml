@@ -16,6 +16,8 @@ jobs:
           cache: npm
       - name: npm ci (vendored lib tarballs — no floating versions)
         run: npm ci --no-audit --no-fund
+      - name: lint
+        run: npm run lint
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Map validator (§10.5)

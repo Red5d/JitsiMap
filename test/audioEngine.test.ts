@@ -8,17 +8,10 @@
 // separate list).
 
 import { describe, expect, it, vi } from 'vitest';
-
-import { Store } from '../src/store';
-import {
-  TILE_SIZE,
-  type MapData,
-  type Pose,
-  type RemoteState,
-  type ZoneDef,
-} from '../src/types';
-import { OFF_TIER_GAIN, POSELESS_GAIN, distanceGain } from '../src/spatial/distance';
 import { ATTACH_MUTED_ELEMENT, createAudioEngine } from '../src/spatial/audioEngine';
+import { distanceGain, OFF_TIER_GAIN, POSELESS_GAIN } from '../src/spatial/distance';
+import { Store } from '../src/store';
+import { type MapData, type Pose, type RemoteState, TILE_SIZE, type ZoneDef } from '../src/types';
 
 // ------------------------------------------------ AudioContext mock
 

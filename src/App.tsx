@@ -11,13 +11,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { normalizeSpaceName, stripJwtFromUrl } from './config';
-import { store } from './store';
 import { createAudioEngine } from './spatial/audioEngine';
+import { store } from './store';
 import { navigate, useLocation } from './ui/hooks';
-import { parseRoute } from './ui/util';
 import { Lobby } from './ui/Lobby';
 import { Room } from './ui/Room';
 import type { Session } from './ui/session';
+import { parseRoute } from './ui/util';
 
 export function App() {
   const loc = useLocation();

@@ -7,42 +7,35 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CamView } from '../src/game/viewport';
-import { store as storeSingleton } from '../src/store'; // node-safety smoke
-import {
-  TILE_SIZE,
-  type Pose,
-  type ReceivedPose,
-  type RemoteState,
-  type ZoneDef,
-} from '../src/types';
 import { VIDEO_RADIUS_TILES } from '../src/spatial/distance';
+import { store as storeSingleton } from '../src/store'; // node-safety smoke
+import { type Pose, type ReceivedPose, type RemoteState, TILE_SIZE, type ZoneDef } from '../src/types';
+import { initialJoinState, JOIN_STEPS, joinReducer } from '../src/ui/Lobby';
+import { diffAudioTracks, selectStageShare } from '../src/ui/Room';
 import {
   BUBBLE_H,
   BUBBLE_HEAD_OFFSET,
   BUBBLE_W,
-  EMOTE_ROW,
-  MAX_VIDEO_BUBBLES,
-  POSELESS_LABEL,
   bubbleVisible,
-  distanceLabel,
-  ownPreviewVisible,
   canvasAriaLabel,
   chatTextContent,
+  distanceLabel,
+  EMOTE_ROW,
   formatChatTime,
   inviteLink,
+  MAX_VIDEO_BUBBLES,
   masterToSlider,
-  peopleStatusLabel,
+  ownPreviewVisible,
+  POSELESS_LABEL,
   parseRoute,
   pathForSpace,
-  shareCandidates,
-  shareNotices,
-  sliderToMaster,
+  peopleStatusLabel,
   type ShareCandidate,
+  shareCandidates,
+  sliderToMaster,
   sliderToVolume,
   volumeToSlider,
 } from '../src/ui/util';
-import { JOIN_STEPS, initialJoinState, joinReducer } from '../src/ui/Lobby';
-import { diffAudioTracks, selectStageShare } from '../src/ui/Room';
 import { bubblePlacement, visibleBubbleSet } from '../src/ui/VideoBubbles';
 
 // ---------------------------------------------------------------- fixtures
@@ -231,7 +224,11 @@ describe('diffAudioTracks', () => {
     const tA = track();
     const d = diffAudioTracks(
       new Map([['a', tA]]),
-      [participant('me', { audioTrack: track() }), participant('a', { audioTrack: tA }), participant('b', { audioTrack: track() })],
+      [
+        participant('me', { audioTrack: track() }),
+        participant('a', { audioTrack: tA }),
+        participant('b', { audioTrack: track() }),
+      ],
       'me',
     );
     expect(d.attach).toEqual(['b']);

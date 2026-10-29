@@ -76,9 +76,7 @@ export function asBool(value) {
  */
 export function asZoneList(value) {
   if (value === undefined || value === null) return [];
-  const parts = Array.isArray(value)
-    ? value.map((v) => String(v))
-    : String(value).split(',');
+  const parts = Array.isArray(value) ? value.map((v) => String(v)) : String(value).split(',');
   return parts.map((s) => s.trim()).filter((s) => s.length > 0);
 }
 

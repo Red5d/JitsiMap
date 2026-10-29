@@ -9,12 +9,11 @@
  * `MovementController` uses Phaser for input/sprites.
  */
 
-import Phaser from 'phaser';
-
+import type Phaser from 'phaser';
+import { store } from '../store';
+import { type Pose, TILE_SIZE } from '../types';
 import type { GameMapData } from './maps';
 import { spawnPosition, tileBlocked } from './maps';
-import { store } from '../store';
-import { TILE_SIZE, type Pose } from '../types';
 
 /** 4 tiles/sec at 32 px/tile (SPEC §5.3). */
 export const MOVE_SPEED_PX = 4 * TILE_SIZE;
@@ -31,8 +30,14 @@ export interface TilePos {
 // ---------------------------------------------------------------- A* (pure)
 
 const DIRS8: ReadonlyArray<readonly [number, number, number]> = [
-  [1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1],
-  [1, 1, Math.SQRT2], [1, -1, Math.SQRT2], [-1, 1, Math.SQRT2], [-1, -1, Math.SQRT2],
+  [1, 0, 1],
+  [-1, 0, 1],
+  [0, 1, 1],
+  [0, -1, 1],
+  [1, 1, Math.SQRT2],
+  [1, -1, Math.SQRT2],
+  [-1, 1, Math.SQRT2],
+  [-1, -1, Math.SQRT2],
 ];
 
 /** Min-heap keyed by f-score; (node, f) pairs, ≤ a few thousand entries. */
@@ -180,7 +185,8 @@ export class MovementController {
   private x: number;
   private y: number;
   private dir = 0; // facing degrees, 0 = up (SPEC types.ts) — initial: up
-  private keys: Partial<Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT', Phaser.Input.Keyboard.Key>> = {};
+  private keys: Partial<Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT', Phaser.Input.Keyboard.Key>> =
+    {};
   private path: { x: number; y: number }[] = [];
   private sprite: Phaser.GameObjects.Container | null = null;
   private pointerDown = (p: Phaser.Input.Pointer): void => this.onClick(p);
@@ -233,7 +239,8 @@ export class MovementController {
     if (k.D?.isDown || k.RIGHT?.isDown) vx += 1;
 
     const keyboardActive = vx !== 0 || vy !== 0;
-    if (keyboardActive) this.path = []; // keyboard input cancels a click path
+    if (keyboardActive)
+      this.path = []; // keyboard input cancels a click path
     else if (this.path.length > 0) {
       const wp = this.path[0]!;
       const dx = wp.x - this.x;

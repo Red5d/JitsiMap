@@ -14,34 +14,32 @@
  * lives in test/ui.test.ts — nothing here duplicates it.
  */
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
 // Static imports of the whole node-safe app graph = the import-smoke test.
 import { App } from '../src/App';
-import { Lobby } from '../src/ui/Lobby';
-import { Room } from '../src/ui/Room';
+import { type GameMapData, parseMapData } from '../src/game/maps';
+import { MAX_VIDEO_SOURCES } from '../src/jitsi/constraints';
+import { createAudioEngine } from '../src/spatial/audioEngine';
+import { computeAudibleSourceNames, computeVideoPlan, HIRES_SOURCES, ON_STAGE_SOURCES } from '../src/spatial/plan';
+import { store } from '../src/store';
+import type { Pose } from '../src/types';
+import { AudioBanner } from '../src/ui/AudioBanner';
 import { BottomBar } from '../src/ui/BottomBar';
+import { Lobby } from '../src/ui/Lobby';
 import { ChatPanel } from '../src/ui/panels/ChatPanel';
 import { PeoplePanel } from '../src/ui/panels/PeoplePanel';
 import { SettingsPanel } from '../src/ui/panels/SettingsPanel';
 import { StagePanel } from '../src/ui/panels/StagePanel';
-import { AudioBanner } from '../src/ui/AudioBanner';
-import { VideoBubbles } from '../src/ui/VideoBubbles';
-import { store } from '../src/store';
-import { parseMapData, type GameMapData } from '../src/game/maps';
-import { createAudioEngine } from '../src/spatial/audioEngine';
-import { computeAudibleSourceNames, computeVideoPlan } from '../src/spatial/plan';
-import { ON_STAGE_SOURCES, HIRES_SOURCES } from '../src/spatial/plan';
+import { Room } from '../src/ui/Room';
 import { shareCandidates, shareNotices } from '../src/ui/util';
-import { MAX_VIDEO_SOURCES } from '../src/jitsi/constraints';
-import type { Pose } from '../src/types';
+import { VideoBubbles } from '../src/ui/VideoBubbles';
 
 // ---------------------------------------------------------------- helpers
 
-const readSource = (relFromTest: string): string =>
-  readFileSync(new URL(relFromTest, import.meta.url), 'utf8');
+const readSource = (relFromTest: string): string => readFileSync(new URL(relFromTest, import.meta.url), 'utf8');
 
 function* walk(dir: string): Generator<string> {
   for (const e of readdirSync(new URL(dir, import.meta.url), { withFileTypes: true })) {
@@ -130,13 +128,7 @@ describe('office map → store → planner chain (§8/§9, §10.6)', () => {
 
     // Off tier: flat model, zones are ignored (§8.5).
     store.setSettings({ tier: 'off' });
-    expect(computeAudibleSourceNames(store, 'me')).toEqual([
-      'A-break',
-      'A-hall',
-      'A-nook',
-      'A-pose',
-      'A-stage',
-    ]);
+    expect(computeAudibleSourceNames(store, 'me')).toEqual(['A-break', 'A-hall', 'A-nook', 'A-pose', 'A-stage']);
     store.setSettings({ tier: 'auto' });
 
     // Per-user local mute unsubscribes (§8.5).
@@ -179,12 +171,7 @@ describe('office map → store → planner chain (§8/§9, §10.6)', () => {
     store.setLocalPose(localPose);
 
     seed({ id: 'zed', name: 'Zed', at: pose(1008, 176, 'breakout-2'), desktop: 'D-zed' });
-    const cands = shareCandidates(
-      [...store.getSnapshot().participants],
-      localPose,
-      store.zones(),
-      'me',
-    );
+    const cands = shareCandidates([...store.getSnapshot().participants], localPose, store.zones(), 'me');
     expect(cands).toHaveLength(1);
     expect(cands[0]).toMatchObject({ id: 'zed', zoneLabel: 'Breakout 2', viewable: false });
     expect(shareNotices(cands, null)).toEqual(['Zed is sharing in Breakout 2']);
@@ -198,12 +185,31 @@ describe('office map → store → planner chain (§8/§9, §10.6)', () => {
 
 describe('module-graph seams (§4.2/§11/§14) — node imports + source scans', () => {
   it('the full app shell graph imports under plain node (§16.1 seam)', () => {
-    for (const f of [App, Lobby, Room, BottomBar, ChatPanel, PeoplePanel, SettingsPanel, StagePanel, AudioBanner, VideoBubbles]) {
+    for (const f of [
+      App,
+      Lobby,
+      Room,
+      BottomBar,
+      ChatPanel,
+      PeoplePanel,
+      SettingsPanel,
+      StagePanel,
+      AudioBanner,
+      VideoBubbles,
+    ]) {
       expect(['function', 'object']).toContain(typeof f); // forwardRef components are objects
     }
     expect(typeof createAudioEngine).toBe('function');
     const engine = createAudioEngine(store); // no AudioContext until start()
-    for (const m of ['start', 'attachParticipant', 'detachParticipant', 'update', 'ctxState', 'resume', 'dispose'] as const) {
+    for (const m of [
+      'start',
+      'attachParticipant',
+      'detachParticipant',
+      'update',
+      'ctxState',
+      'resume',
+      'dispose',
+    ] as const) {
       expect(typeof engine[m]).toBe('function');
     }
   });
@@ -363,7 +369,10 @@ describe('join sequence + teardown order (§5.1/§6.2/§8.6/§14)', () => {
     const strip = text.indexOf('stripJwtFromUrl(cfg', join); // §14: after success
     const start = text.indexOf('engine.start(ctx)');
     const all = [audio, config, map, lib, join, strip, start];
-    expect(all.every((n) => n >= 0), JSON.stringify(all)).toBe(true);
+    expect(
+      all.every((n) => n >= 0),
+      JSON.stringify(all),
+    ).toBe(true);
     for (let i = 1; i < all.length; i++) {
       expect(all[i]!, `${i}: ${JSON.stringify(all)}`).toBeGreaterThan(all[i - 1]!);
     }
@@ -392,7 +401,10 @@ describe('join sequence + teardown order (§5.1/§6.2/§8.6/§14)', () => {
     const join = text.indexOf('await client.join({', client);
     const strip = text.indexOf('stripJwtFromUrl(s.config', join);
     const all = [leave, ctx, lib, client, join, strip];
-    expect(all.every((n) => n >= 0), JSON.stringify(all)).toBe(true);
+    expect(
+      all.every((n) => n >= 0),
+      JSON.stringify(all),
+    ).toBe(true);
     for (let i = 1; i < all.length; i++) {
       expect(all[i]!, `${i}: ${JSON.stringify(all)}`).toBeGreaterThan(all[i - 1]!);
     }

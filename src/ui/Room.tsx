@@ -13,20 +13,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { GameHandle } from '../game/scene';
-import { readCamera, type CamView, type CameraLike } from '../game/viewport';
+import { type CameraLike, type CamView, readCamera } from '../game/viewport';
+import { computeAudibleSourceNames, computeVideoPlan, debounce } from '../spatial/plan';
 import { store } from '../store';
 import type { RemoteState } from '../types';
-import { computeAudibleSourceNames, computeVideoPlan, debounce } from '../spatial/plan';
-import { canvasAriaLabel, inviteLink, shareCandidates, shareNotices, type ShareCandidate } from './util';
-import { useStore } from './hooks';
-import type { Session } from './session';
 import { AudioBanner } from './AudioBanner';
 import { BottomBar } from './BottomBar';
-import { VideoBubbles, type VideoBubblesHandle } from './VideoBubbles';
+import { useStore } from './hooks';
 import { ChatPanel } from './panels/ChatPanel';
 import { PeoplePanel } from './panels/PeoplePanel';
 import { SettingsPanel } from './panels/SettingsPanel';
 import { StagePanel } from './panels/StagePanel';
+import type { Session } from './session';
+import { canvasAriaLabel, inviteLink, type ShareCandidate, shareCandidates, shareNotices } from './util';
+import { VideoBubbles, type VideoBubblesHandle } from './VideoBubbles';
 
 // ---------------------------------------------------------------- pure logic
 
@@ -136,11 +136,16 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
     import('../game/scene')
       .then(({ createGame }) => {
         if (disposed) return;
-        handle = createGame(el, map, {
-          onEmote: (emoji) => client.sendEmote(emoji), // §7.2
-          onZoneChange: (z) => setAria((a) => ({ ...a, zone: z ? z.label ?? z.id : null })),
-          onNearbyChange: (n) => setAria((a) => ({ ...a, nearby: n })),
-        }, { debugZones: new URLSearchParams(window.location.search).has('debugZones') });
+        handle = createGame(
+          el,
+          map,
+          {
+            onEmote: (emoji) => client.sendEmote(emoji), // §7.2
+            onZoneChange: (z) => setAria((a) => ({ ...a, zone: z ? (z.label ?? z.id) : null })),
+            onNearbyChange: (n) => setAria((a) => ({ ...a, nearby: n })),
+          },
+          { debugZones: new URLSearchParams(window.location.search).has('debugZones') },
+        );
         gameRef.current = handle;
       })
       .catch((e) => console.warn('[jitsimap] game failed to start:', e));
@@ -205,6 +210,7 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
 
   stageOpenRef.current = stageId !== null;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: zones() is static after load; effect triggers on participants/pose/stageId
   useEffect(() => {
     const s = store.getSnapshot();
     const cands = shareCandidates([...s.participants], s.local.pose, store.zones(), s.local.id);
@@ -268,9 +274,7 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
     }
   };
 
-  const stageParticipant = stageId
-    ? snap.participants.find((p) => p.id === stageId && p.desktopTrack)
-    : undefined;
+  const stageParticipant = stageId ? snap.participants.find((p) => p.id === stageId && p.desktopTrack) : undefined;
 
   return (
     <div className="jm-room">
@@ -288,17 +292,10 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
 
       <div className="jm-room__main">
         <div className="jm-room__canvas">
-          <div
-            ref={canvasRef}
-            role="img"
-            aria-label={canvasAriaLabel(aria.zone, aria.nearby)}
-          />
+          <div ref={canvasRef} role="img" aria-label={canvasAriaLabel(aria.zone, aria.nearby)} />
           <VideoBubbles ref={bubblesRef} client={client} camOn={camOn} cameraRef={cameraRef} />
           {stageParticipant && (
-            <StagePanel
-              participantId={stageParticipant.id}
-              onDismiss={() => dismissStage(stageParticipant.id)}
-            />
+            <StagePanel participantId={stageParticipant.id} onDismiss={() => dismissStage(stageParticipant.id)} />
           )}
         </div>
 
@@ -354,8 +351,10 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
       />
 
       {settingsOpen && (
+        /* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: backdrop click; Esc is the keyboard equivalent */
         <div
           className="jm-modal"
+          role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) setSettingsOpen(false);
           }}
@@ -365,11 +364,18 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
       )}
 
       {(snap.status === 'failed' || snap.status === 'waiting-host') && (
-        <div className="jm-overlay" role="alertdialog" aria-label={snap.status === 'waiting-host' ? 'Waiting for a host' : 'Connection lost'}>
+        <div
+          className="jm-overlay"
+          role="alertdialog"
+          aria-label={snap.status === 'waiting-host' ? 'Waiting for a host' : 'Connection lost'}
+        >
           <div className="jm-overlay__card">
             <h2>{snap.status === 'waiting-host' ? '⏳ Waiting for a host' : '⚠️ Connection lost'}</h2>
             <p className="jm-lobby__subtitle">
-              {snap.lastError ?? (snap.status === 'failed' ? 'The conference connection failed.' : 'Waiting for a host to open this room.')}
+              {snap.lastError ??
+                (snap.status === 'failed'
+                  ? 'The conference connection failed.'
+                  : 'Waiting for a host to open this room.')}
             </p>
             <div className="jm-settings__actions">
               <button className="jm-btn" type="button" onClick={onLeave}>

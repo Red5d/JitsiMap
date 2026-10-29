@@ -40,7 +40,10 @@ const AUTH_MODES: readonly AuthMode[] = ['anonymous', 'jwt-guest', 'jwt-token'];
 
 /** Space name normalisation — identical for URL and MUC room (§6.2). */
 export function normalizeSpaceName(raw: string): string {
-  return raw.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '-');
 }
 
 function str(v: unknown): string | undefined {
@@ -53,7 +56,7 @@ export function parseRuntimeConfig(raw: unknown, search: string = location.searc
   const domain = str(j.domain);
   if (!domain) {
     throw new ConfigError(
-      'Jitsi domain is not configured. Set JITSI_DOMAIN (see .env.example) and redeploy the app container.'
+      'Jitsi domain is not configured. Set JITSI_DOMAIN (see .env.example) and redeploy the app container.',
     );
   }
   const authMode = str(c.auth?.mode) ?? 'anonymous';

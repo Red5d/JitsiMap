@@ -3,20 +3,19 @@
 // the world↔screen transforms the video-bubble overlay uses every frame.
 
 import { describe, expect, it } from 'vitest';
-
-import type { Pose, ReceivedPose } from '../src/types';
 import {
-  INTERPOLATION_MS,
-  MAX_ZOOM,
-  MIN_ZOOM,
-  SNAP_DISTANCE_PX,
   applySnap,
+  INTERPOLATION_MS,
   interpolatePose,
   lerpDir,
+  MAX_ZOOM,
+  MIN_ZOOM,
   readCamera,
+  SNAP_DISTANCE_PX,
   screenToWorld,
   worldToScreen,
 } from '../src/game/viewport';
+import type { Pose, ReceivedPose } from '../src/types';
 
 const pose = (x: number, y: number, over: Partial<Pose> = {}): Pose => ({
   x,
@@ -61,7 +60,12 @@ describe('interpolatePose (~150 ms window, SPEC §7.3)', () => {
   });
 
   it('zone + moving pass through from the target; dir lerps the shortest arc', () => {
-    const r = received(pose(0, 0, { dir: 350, zone: 'hall', moving: true }), pose(10, 0, { dir: 10, zone: 'stage', moving: false }), 1000, 1050);
+    const r = received(
+      pose(0, 0, { dir: 350, zone: 'hall', moving: true }),
+      pose(10, 0, { dir: 10, zone: 'stage', moving: false }),
+      1000,
+      1050,
+    );
     const p = interpolatePose(r, 1000 + INTERPOLATION_MS / 2);
     expect(p.zone).toBe('stage');
     expect(p.moving).toBe(false);
@@ -128,7 +132,11 @@ describe('camera math (§9.1 overlay)', () => {
     const s = worldToScreen({ x: 300, y: 200 }, cam);
     expect(s).toEqual({ x: 400, y: 300 });
     expect(screenToWorld(s, cam)).toEqual({ x: 300, y: 200 });
-    for (const w of [{ x: 0, y: 0 }, { x: 1280, y: 960 }, { x: 656.5, y: 464.25 }]) {
+    for (const w of [
+      { x: 0, y: 0 },
+      { x: 1280, y: 960 },
+      { x: 656.5, y: 464.25 },
+    ]) {
       expect(screenToWorld(worldToScreen(w, cam), cam)).toEqual(w);
     }
   });

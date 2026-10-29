@@ -13,6 +13,8 @@ export interface DecodedPng {
 /** Decode PNG bytes (8-bit, non-interlaced, color types 0/2/3/4/6) to RGBA. */
 export function decodePng(buf: Buffer | Uint8Array): DecodedPng;
 
-export function pngChunks(buf: Buffer | Uint8Array): Array<{ type: string; length: number; crcOk: boolean; data: Buffer }>;
+export function pngChunks(
+  buf: Buffer | Uint8Array,
+): Array<{ type: string; length: number; crcOk: boolean; data: Buffer }>;
 
 export function crc32(buf: Buffer | Uint8Array): number;

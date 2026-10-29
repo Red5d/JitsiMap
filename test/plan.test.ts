@@ -5,18 +5,10 @@
 // §9.3 stage-share visibility rule.
 
 import { describe, expect, it, vi } from 'vitest';
-
-import { Store } from '../src/store';
-import {
-  TILE_SIZE,
-  type MapData,
-  type Pose,
-  type ReceivedPose,
-  type RemoteState,
-  type ZoneDef,
-} from '../src/types';
 import { MAX_VIDEO_SOURCES } from '../src/jitsi/constraints';
 import { computeAudibleSourceNames, computeVideoPlan, debounce } from '../src/spatial/plan';
+import { Store } from '../src/store';
+import { type MapData, type Pose, type ReceivedPose, type RemoteState, TILE_SIZE, type ZoneDef } from '../src/types';
 
 const zone = (id: string, x: number, y: number, w: number, h: number, extra: Partial<ZoneDef> = {}): ZoneDef => ({
   id,

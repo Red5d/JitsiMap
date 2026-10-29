@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   distanceGain,
-  distanceTiles,
+  FULL_RADIUS_TILES,
   finalGain,
   HEAR_RADIUS_TILES,
   OFF_TIER_GAIN,
   panFor,
   spatialGain,
   zoneAudible,
-  FULL_RADIUS_TILES,
 } from '../src/spatial/distance';
 import type { ZoneDef } from '../src/types';
 
@@ -25,12 +24,9 @@ const zone = (id: string, extra: Partial<ZoneDef> = {}): ZoneDef => ({
 });
 
 const zones = new Map<string, ZoneDef>(
-  [
-    zone('hall'),
-    zone('stage', { audibleFrom: ['hall'] }),
-    zone('breakout-1'),
-    zone('silent', { silent: true }),
-  ].map((z) => [z.id, z])
+  [zone('hall'), zone('stage', { audibleFrom: ['hall'] }), zone('breakout-1'), zone('silent', { silent: true })].map(
+    (z) => [z.id, z],
+  ),
 );
 
 describe('distance gain (§8.2)', () => {
@@ -43,7 +39,7 @@ describe('distance gain (§8.2)', () => {
   });
   it('midpoint follows the specified curve, monotone decreasing', () => {
     const mid = distanceGain(5);
-    expect(mid).toBeCloseTo(Math.pow((8 - 5) / 6, 1.5), 10);
+    expect(mid).toBeCloseTo(((8 - 5) / 6) ** 1.5, 10);
     expect(mid).toBeGreaterThan(0);
     expect(mid).toBeLessThan(1);
     let prev = 1;
@@ -88,7 +84,15 @@ describe('pan (§8.3)', () => {
 });
 
 describe('gain multiplication chain (§8.5)', () => {
-  const base = { tier: 'full' as const, spatial: 0.5, volume: 1, mutedForMe: false, micMuted: false, master: 1, deafened: false };
+  const base = {
+    tier: 'full' as const,
+    spatial: 0.5,
+    volume: 1,
+    mutedForMe: false,
+    micMuted: false,
+    master: 1,
+    deafened: false,
+  };
   it('multiplies spatial × volume × master', () => {
     expect(finalGain(base)).toBe(0.5);
     expect(finalGain({ ...base, volume: 2, master: 0.5 })).toBe(0.5);

@@ -115,13 +115,7 @@ export interface Settings {
  * Connection lifecycle states (SPEC §5.1 / §6.2).
  * `waiting-host` = JWT+guests room not yet opened (§6.6).
  */
-export type Status =
-  | 'lobby'
-  | 'connecting'
-  | 'joined'
-  | 'reconnecting'
-  | 'waiting-host'
-  | 'failed';
+export type Status = 'lobby' | 'connecting' | 'joined' | 'reconnecting' | 'waiting-host' | 'failed';
 
 /**
  * Everything the store knows about a remote participant (SPEC §7.7 includes
@@ -165,10 +159,46 @@ export function isPoseLess(p: Pick<RemoteState, 'pose' | 'joinedAt'>, now: numbe
 
 /** Curated emoji set for the avatar picker (SPEC §5.1). */
 export const EMOJI_SET = [
-  '🧙', '🧝', '🧛', '🧟', '🧞', '🦸', '🦹', '🧜', '🧚', '👩‍🚀',
-  '🐱', '🐶', '🦊', '🐻', '🐼', '🐸', '🦉', '🐙', '🦄', '🐧',
-  '🍄', '🌵', '🌻', '⭐', '🌙', '🔥', '❄️', '🌈', '⚡', '💧',
-  '🤖', '👻', '🎃', '🎩', '👑', '🕵️', '🧸', '🍕', '🚀', '🎧',
+  '🧙',
+  '🧝',
+  '🧛',
+  '🧟',
+  '🧞',
+  '🦸',
+  '🦹',
+  '🧜',
+  '🧚',
+  '👩‍🚀',
+  '🐱',
+  '🐶',
+  '🦊',
+  '🐻',
+  '🐼',
+  '🐸',
+  '🦉',
+  '🐙',
+  '🦄',
+  '🐧',
+  '🍄',
+  '🌵',
+  '🌻',
+  '⭐',
+  '🌙',
+  '🔥',
+  '❄️',
+  '🌈',
+  '⚡',
+  '💧',
+  '🤖',
+  '👻',
+  '🎃',
+  '🎩',
+  '👑',
+  '🕵️',
+  '🧸',
+  '🍕',
+  '🚀',
+  '🎧',
 ] as const;
 
 export function randomEmoji(): string {

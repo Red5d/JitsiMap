@@ -32,7 +32,11 @@ body,
 body {
   background: var(--jm-bg);
   color: var(--jm-fg);
-  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font:
+    15px / 1.45 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

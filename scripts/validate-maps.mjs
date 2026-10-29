@@ -21,23 +21,23 @@
 //     accepted, from the `ground` + `furniture` layers only.
 //   - Unknown tile/object properties and unknown layers are ignored.
 
-import { readFile, readdir } from 'node:fs/promises';
 import fs from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  TILE_SIZE,
-  REQUIRED_TILE_LAYERS,
-  REQUIRED_OBJECT_LAYERS,
-  OPTIONAL_OBJECT_LAYERS,
-  FLIP_FLAGS,
   collisionGrid,
   extractSpawns,
   extractZones,
+  FLIP_FLAGS,
   floodFill,
   layerByName,
   loadMapDocument,
+  OPTIONAL_OBJECT_LAYERS,
+  REQUIRED_OBJECT_LAYERS,
+  REQUIRED_TILE_LAYERS,
   resolveTilesets,
+  TILE_SIZE,
   zoneTileRect,
 } from './maplib.mjs';
 
@@ -59,7 +59,8 @@ export async function validateMap(obj, options = {}) {
 
   // --- File basics ---------------------------------------------------------
   if (obj.infinite === true) errors.push('infinite maps are not supported (keep "infinite": false)');
-  if (obj.orientation !== 'orthogonal') errors.push(`orientation must be "orthogonal", got ${JSON.stringify(obj.orientation)}`);
+  if (obj.orientation !== 'orthogonal')
+    errors.push(`orientation must be "orthogonal", got ${JSON.stringify(obj.orientation)}`);
   if (Number(obj.tilewidth) !== TILE_SIZE || Number(obj.tileheight) !== TILE_SIZE) {
     errors.push(`tile size must be ${TILE_SIZE}x${TILE_SIZE}, got ${obj.tilewidth}x${obj.tileheight}`);
   }
@@ -71,7 +72,6 @@ export async function validateMap(obj, options = {}) {
   }
 
   // --- Layers --------------------------------------------------------------
-  const layers = Array.isArray(obj.layers) ? obj.layers : [];
   if (!Array.isArray(obj.layers)) errors.push('no "layers" array');
   for (const name of REQUIRED_TILE_LAYERS) {
     const layer = layerByName(obj, name);
@@ -88,18 +88,22 @@ export async function validateMap(obj, options = {}) {
       continue;
     }
     if (layer.data.length !== width * height) {
-      errors.push(`tile layer "${name}" has ${layer.data.length} cells, expected ${width * height} (${width}x${height})`);
+      errors.push(
+        `tile layer "${name}" has ${layer.data.length} cells, expected ${width * height} (${width}x${height})`,
+      );
     }
   }
   for (const name of REQUIRED_OBJECT_LAYERS) {
     const layer = layerByName(obj, name);
     if (!layer) errors.push(`missing layer "${name}" (required: ${REQUIRED_OBJECT_LAYERS.join(', ')})`);
-    else if (layer.type !== 'objectgroup') errors.push(`layer "${name}" must be an objectgroup, got ${JSON.stringify(layer.type)}`);
+    else if (layer.type !== 'objectgroup')
+      errors.push(`layer "${name}" must be an objectgroup, got ${JSON.stringify(layer.type)}`);
   }
   for (const name of OPTIONAL_OBJECT_LAYERS) {
     const layer = layerByName(obj, name);
     if (!layer) warnings.push(`layer "${name}" is missing (reserved for Phase 2 exits; add an empty object layer)`);
-    else if (layer.type !== 'objectgroup') warnings.push(`layer "${name}" should be an objectgroup, got ${JSON.stringify(layer.type)}`);
+    else if (layer.type !== 'objectgroup')
+      warnings.push(`layer "${name}" should be an objectgroup, got ${JSON.stringify(layer.type)}`);
   }
 
   // --- Tilesets ------------------------------------------------------------
@@ -144,7 +148,8 @@ export async function validateMap(obj, options = {}) {
       if (raw & FLIP_FLAGS) flipped++;
       if (resolved.length > 0 && !known.has(raw & 0x0fff_ffff)) unknown.add(raw & 0x0fff_ffff);
     }
-    if (flipped > 0) warnings.push(`tile layer "${name}": ${flipped} tile(s) use flip/transpose flags (avoid; copy gids verbatim)`);
+    if (flipped > 0)
+      warnings.push(`tile layer "${name}": ${flipped} tile(s) use flip/transpose flags (avoid; copy gids verbatim)`);
     for (const g of unknown) warnings.push(`tile layer "${name}": gid ${g} is not in any tileset (renders as a hole)`);
   }
 
@@ -174,15 +179,16 @@ export async function validateMap(obj, options = {}) {
     byId.set(zone.id, zone);
     if (![zone.x, zone.y, zone.w, zone.h].every((n) => Number.isFinite(n))) {
       errors.push(
-        `zone "${zone.id}" has non-numeric geometry (${zone.x},${zone.y} ${zone.w}x${zone.h}); rectangle objects need numeric x/y/width/height`
+        `zone "${zone.id}" has non-numeric geometry (${zone.x},${zone.y} ${zone.w}x${zone.h}); rectangle objects need numeric x/y/width/height`,
       );
       continue;
     }
-    if (zone.w <= 0 || zone.h <= 0) errors.push(`zone "${zone.id}" has zero size (${zone.w}x${zone.h}); zone objects must be rectangles`);
+    if (zone.w <= 0 || zone.h <= 0)
+      errors.push(`zone "${zone.id}" has zero size (${zone.w}x${zone.h}); zone objects must be rectangles`);
     if (zone.x < 0 || zone.y < 0 || zone.x + zone.w > width * TILE_SIZE || zone.y + zone.h > height * TILE_SIZE) {
       errors.push(
         `zone "${zone.id}" is outside the map bounds: rect ${zone.x},${zone.y} ${zone.w}x${zone.h} ` +
-          `vs map ${width * TILE_SIZE}x${height * TILE_SIZE}`
+          `vs map ${width * TILE_SIZE}x${height * TILE_SIZE}`,
       );
     }
     if (zone.x % TILE_SIZE !== 0 || zone.y % TILE_SIZE !== 0 || zone.w % TILE_SIZE !== 0 || zone.h % TILE_SIZE !== 0) {
@@ -203,7 +209,8 @@ export async function validateMap(obj, options = {}) {
       if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) overlapping.push(`${a.id}+${b.id}`);
     }
   }
-  if (overlapping.length > 0) warnings.push(`overlapping zones (${overlapping.join(', ')}); the app uses the first match`);
+  if (overlapping.length > 0)
+    warnings.push(`overlapping zones (${overlapping.join(', ')}); the app uses the first match`);
 
   // --- Collision + reachability -------------------------------------------
   const { blocked } = await collisionGrid(obj, baseDir);
@@ -211,7 +218,9 @@ export async function validateMap(obj, options = {}) {
   const walkable = spawns.filter((s) => inBounds(s) && !blocked[s.row * width + s.col]);
   for (const spawn of spawns) {
     if (inBounds(spawn) && blocked[spawn.row * width + spawn.col]) {
-      errors.push(`spawn "${spawn.id}" is on a colliding tile (tile ${spawn.col},${spawn.row}) — move it onto walkable floor`);
+      errors.push(
+        `spawn "${spawn.id}" is on a colliding tile (tile ${spawn.col},${spawn.row}) — move it onto walkable floor`,
+      );
     }
   }
   if (walkable.length > 0) {
@@ -237,7 +246,7 @@ export async function validateMap(obj, options = {}) {
       if (!reachable) {
         errors.push(
           `zone "${zone.id}" is not reachable on foot from spawn "${start.id}" ` +
-            `(tiles ${rect.col0},${rect.row0}–${rect.col1},${rect.row1}${walkableTiles === 0 ? '; the zone contains no walkable tiles' : '; no door?'}).`
+            `(tiles ${rect.col0},${rect.row0}–${rect.col1},${rect.row1}${walkableTiles === 0 ? '; the zone contains no walkable tiles' : '; no door?'}).`,
         );
       }
     }
@@ -250,7 +259,8 @@ export async function validateMap(obj, options = {}) {
       if (seen[row * width]) border++;
       if (seen[row * width + width - 1]) border++;
     }
-    if (border > 0) warnings.push(`${border} walkable tile(s) on the map border: avatars can reach the edge (wall the outer ring)`);
+    if (border > 0)
+      warnings.push(`${border} walkable tile(s) on the map border: avatars can reach the edge (wall the outer ring)`);
   }
 
   return { errors, warnings };
@@ -267,7 +277,11 @@ export async function validateMapFile(file) {
   try {
     ({ doc, dir } = await loadMapDocument(file));
   } catch (err) {
-    return { file, errors: [String(err?.message ?? err).replace(/^.*?: /, (m) => (m.includes(file) ? '' : m))], warnings: [] };
+    return {
+      file,
+      errors: [String(err?.message ?? err).replace(/^.*?: /, (m) => (m.includes(file) ? '' : m))],
+      warnings: [],
+    };
   }
   const { errors, warnings } = await validateMap(doc, { baseDir: dir });
   return { file, errors, warnings };

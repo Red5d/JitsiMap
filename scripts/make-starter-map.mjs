@@ -33,22 +33,22 @@ export const TILES = {
   'floor-planks-2': 37,
   'floor-planks-3': 39,
   'floor-mat': 31,
-  'rug': 30,
-  'wall': 40,
+  rug: 30,
+  wall: 40,
   'wall-2': 14,
   'wall-3': 58,
   'wall-window': 16,
-  'door': 46,
-  'table': 54,
+  door: 46,
+  table: 54,
   'table-2': 55,
-  'chair': 73,
-  'shelf': 75,
+  chair: 73,
+  shelf: 75,
   'shelf-2': 63,
   'shelf-3': 41,
-  'planter': 44,
-  'barrel': 68,
-  'crate': 70,
-  'banner': 29,
+  planter: 44,
+  barrel: 68,
+  crate: 70,
+  banner: 29,
 };
 
 /** Tiles that block movement. Painted on `ground` or `furniture` (SPEC §10.2). */
@@ -126,7 +126,16 @@ export function emptyMap(width, height, { image }) {
     visible: true,
     data: new Array(width * height).fill(0),
   });
-  const objectLayer = (id, name) => ({ id, name, type: 'objectgroup', x: 0, y: 0, opacity: 1, visible: true, objects: [] });
+  const objectLayer = (id, name) => ({
+    id,
+    name,
+    type: 'objectgroup',
+    x: 0,
+    y: 0,
+    opacity: 1,
+    visible: true,
+    objects: [],
+  });
   return {
     type: 'map',
     version: '1.10',
@@ -172,7 +181,8 @@ export function paint(map) {
     furniture: (col, row, tileName) => set('furniture', col, row, tileName),
     /** Inclusive rectangle fill. */
     fill(layerName, col0, row0, col1, row1, tileName) {
-      for (let row = row0; row <= row1; row++) for (let col = col0; col <= col1; col++) set(layerName, col, row, tileName);
+      for (let row = row0; row <= row1; row++)
+        for (let col = col0; col <= col1; col++) set(layerName, col, row, tileName);
     },
     /** Wall rectangle: every cell on the perimeter (inclusive coordinates). */
     wallRect(col0, row0, col1, row1, tileName = 'wall') {

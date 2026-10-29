@@ -6,6 +6,7 @@
  * No module outside src/jitsi/ touches lib-jitsi-meet.
  */
 
+import { POSE_EXPIRE_MS } from './protocol';
 import {
   type AvatarInfo,
   type ChatMessage,
@@ -14,12 +15,11 @@ import {
   type Pose,
   type ReceivedPose,
   type RemoteState,
+  randomEmoji,
   type Settings,
   type Status,
   type ZoneDef,
-  randomEmoji,
 } from './types';
-import { POSE_EXPIRE_MS } from './protocol';
 
 const LS_KEY = 'jitsimap.v1';
 

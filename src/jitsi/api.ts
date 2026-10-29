@@ -12,8 +12,6 @@
  */
 
 import type { AvatarInfo, MapData, Pose } from '../types';
-import type { RuntimeConfig } from '../config';
-import type { Store } from '../store';
 
 export interface JoinOptions {
   /** Normalised MUC room name (config.normalizeSpaceName). */

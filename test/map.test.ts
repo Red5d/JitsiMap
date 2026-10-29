@@ -7,8 +7,6 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-
-import { decodePng, encodePngRgb } from '../scripts/png.mjs';
 import {
   asBool,
   collisionGrid,
@@ -19,6 +17,7 @@ import {
   resolveTilesets,
   zoneTileRect,
 } from '../scripts/maplib.mjs';
+import { decodePng, encodePngRgb } from '../scripts/png.mjs';
 import { defaultMapFiles, main, validateMap, validateMapFile } from '../scripts/validate-maps.mjs';
 
 const mapsDir = fileURLToPath(new URL('../public/maps/', import.meta.url));
@@ -39,7 +38,6 @@ afterAll(() => {
 });
 
 const officeDoc = () => JSON.parse(readFileSync(officeFile, 'utf8')) as any;
-const clone = (doc: any) => structuredClone(doc);
 
 /** Write a mutated copy of office into the temp dir and validate it on disk. */
 async function fixture(name: string, doc: any) {
@@ -50,7 +48,8 @@ async function fixture(name: string, doc: any) {
 
 const objectLayer = (doc: any, name: string) => doc.layers.find((l: any) => l.name === name);
 const setProp = (obj: any, name: string, value: unknown) => {
-  const props = (obj.properties ??= []);
+  obj.properties ??= [];
+  const props: any[] = obj.properties;
   const p = props.find((q: any) => q.name === name);
   if (p) p.value = value;
   else props.push({ name, type: typeof value === 'boolean' ? 'bool' : 'string', value });
@@ -107,7 +106,7 @@ describe('tileset (map-schema.md)', () => {
     const doc = officeDoc();
     const resolved = await resolveTilesets(doc, mapsDir);
     const colliding = doc.tilesets[0].tiles.filter((t: any) =>
-      (t.properties ?? []).some((p: any) => p.name === 'collides' && p.value === true)
+      (t.properties ?? []).some((p: any) => p.name === 'collides' && p.value === true),
     );
     expect(colliding.length).toBeGreaterThan(0);
     for (const t of colliding) expect(gidCollides(resolved, 1 + t.id)).toBe(true);
@@ -289,16 +288,16 @@ describe('validator catches broken maps', () => {
     const stage = objectLayer(doc, 'zones').objects.find((o: any) => o.name === 'stage');
     setProp(stage, 'audibleFrom', 'atrium');
     const { errors } = await fixture('bad-audible.tmj', doc);
-    expect(
-      errors.some((e: string) => e.includes('zone "stage": audibleFrom references unknown zone "atrium"'))
-    ).toBe(true);
+    expect(errors.some((e: string) => e.includes('zone "stage": audibleFrom references unknown zone "atrium"'))).toBe(
+      true,
+    );
   });
 
   it('sealed-off zone is not reachable on foot', async () => {
     const doc = officeDoc();
     const furniture = objectLayer(doc, 'furniture');
     const wall = doc.tilesets[0].tiles.find((t: any) =>
-      (t.properties ?? []).some((p: any) => p.name === 'collides' && p.value === true)
+      (t.properties ?? []).some((p: any) => p.name === 'collides' && p.value === true),
     );
     const gid = doc.tilesets[0].firstgid + wall.id;
     const W = doc.width;
@@ -319,7 +318,7 @@ describe('validator catches broken maps', () => {
     const doc = officeDoc();
     const furniture = objectLayer(doc, 'furniture');
     const wall = doc.tilesets[0].tiles.find((t: any) =>
-      (t.properties ?? []).some((p: any) => p.name === 'collides' && p.value === true)
+      (t.properties ?? []).some((p: any) => p.name === 'collides' && p.value === true),
     );
     const gid = doc.tilesets[0].firstgid + wall.id;
     // Fully split the map on column 15 (rows 1..28): hall-west (col 14) ends up

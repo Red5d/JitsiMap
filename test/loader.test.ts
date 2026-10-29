@@ -7,9 +7,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-
-import { parseMapData, resolveGid, spawnPosition, tileBlocked } from '../src/game/maps';
 import type { GameMapData } from '../src/game/maps';
+import { parseMapData, resolveGid, spawnPosition, tileBlocked } from '../src/game/maps';
 import { TILE_SIZE } from '../src/types';
 
 const mapsDir = fileURLToPath(new URL('../public/maps/', import.meta.url));

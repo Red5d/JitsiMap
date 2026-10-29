@@ -90,7 +90,14 @@ function envelope<T extends MessageType>(type: T): Omit<EnvelopeBase, 'type'> & 
 }
 
 export function encodePose(pose: Pose): PoseMsg {
-  return { ...envelope('pose'), x: Math.round(pose.x), y: Math.round(pose.y), dir: Math.round(pose.dir), zone: pose.zone, moving: pose.moving };
+  return {
+    ...envelope('pose'),
+    x: Math.round(pose.x),
+    y: Math.round(pose.y),
+    dir: Math.round(pose.dir),
+    zone: pose.zone,
+    moving: pose.moving,
+  };
 }
 
 export function encodeHello(name: string, avatar: AvatarInfo, zone: string | null): HelloMsg {

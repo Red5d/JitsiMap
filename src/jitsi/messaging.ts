@@ -20,20 +20,20 @@
  */
 
 import {
-  EMOTE_RATE_LIMIT_MS,
-  POSE_HEARTBEAT_MS,
-  POSE_MIN_MOVE_PX,
-  POSE_SEND_INTERVAL_MS,
-  STATE_REQUEST_DELAY_MS,
+  type DecodedMessage,
   decodeMessage,
+  EMOTE_RATE_LIMIT_MS,
+  type EncodedMessage,
   encodeAvatar,
   encodeEmote,
   encodeHello,
   encodePose,
   encodeState,
   encodeStateRequest,
-  type DecodedMessage,
-  type EncodedMessage,
+  POSE_HEARTBEAT_MS,
+  POSE_MIN_MOVE_PX,
+  POSE_SEND_INTERVAL_MS,
+  STATE_REQUEST_DELAY_MS,
   type ValidationCtx,
 } from '../protocol';
 import type { Snapshot } from '../store';
@@ -118,19 +118,14 @@ export class MessagingHub {
     const snap = store.getSnapshot();
     const pose = spawn ?? store.getLocalPose();
     this.lastFed = pose;
-    sendBroadcast(
-      encodeHello(snap.local.name, snap.local.avatar, snap.localZone?.id ?? pose?.zone ?? null),
-    );
+    sendBroadcast(encodeHello(snap.local.name, snap.local.avatar, snap.localZone?.id ?? pose?.zone ?? null));
     if (pose) this.sendPoseNow(pose);
     this.stateRequestTimer = this.timers.setTimeout(() => {
       this.stateRequestTimer = null;
       if (this.started) sendBroadcast(encodeStateRequest());
     }, STATE_REQUEST_DELAY_MS);
     this.heartbeatTimer = this.timers.setInterval(() => this.beat(), POSE_HEARTBEAT_MS);
-    this.sweepTimer = this.timers.setInterval(
-      () => store.expirePoses(this.deps.now()),
-      POSE_SWEEP_INTERVAL_MS,
-    );
+    this.sweepTimer = this.timers.setInterval(() => store.expirePoses(this.deps.now()), POSE_SWEEP_INTERVAL_MS);
   }
 
   /** Tear down all timers (leave/rejoin — §6.2 "any rejoin is a fresh join"). */

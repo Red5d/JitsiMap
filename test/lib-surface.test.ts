@@ -12,31 +12,29 @@
  *    missing/retyped in the shim fails `tsc --noEmit`).
  */
 
-import { describe, expect, it } from 'vitest';
-
 import type {
   IConferenceOptions,
-  IConnectionOptions,
   IConnectOptions,
   IInitOptions,
+  ILegacyReceiverAudioSubscriptionMessage,
   ILocalTrackOptions,
   IReceiverAudioSubscriptionMessage,
   IReceiverVideoConstraints,
-  ILegacyReceiverAudioSubscriptionMessage,
   JitsiConference,
-  JitsiConferenceEvents as JitsiConferenceEventsType,
-  JitsiConnectionEvents as JitsiConnectionEventsType,
-  JitsiMediaDevicesEvents as JitsiMediaDevicesEventsType,
-  JitsiParticipant,
   JitsiConferenceErrors as JitsiConferenceErrorsType,
-  JitsiConnectionErrors as JitsiConnectionErrorsType,
-  JitsiTrackErrors as JitsiTrackErrorsType,
+  JitsiConferenceEvents as JitsiConferenceEventsType,
   JitsiConnection,
+  JitsiConnectionErrors as JitsiConnectionErrorsType,
+  JitsiConnectionEvents as JitsiConnectionEventsType,
   JitsiLocalTrack,
+  JitsiMediaDevicesEvents as JitsiMediaDevicesEventsType,
   JitsiMeetJSStatic,
+  JitsiParticipant,
   JitsiTrack,
+  JitsiTrackErrors as JitsiTrackErrorsType,
   JitsiTrackEvents as JitsiTrackEventsType,
 } from 'lib-jitsi-meet';
+import { describe, expect, it } from 'vitest';
 
 // A callable Proxy standing in for the browser-only lib namespace in node:
 // every property access / call / construction returns another stub, so the
@@ -44,7 +42,7 @@ import type {
 // do all the verification at compile time.
 const stub = (): any =>
   new Proxy(function noop() {} as unknown as object, {
-    get: (target, prop) => (prop === 'toString' ? () => 'lib-stub' : stub()),
+    get: (_target, prop) => (prop === 'toString' ? () => 'lib-stub' : stub()),
     apply: () => stub(),
     construct: () => stub(),
   });
@@ -142,8 +140,7 @@ describe('lib-jitsi-meet shim — JitsiMeetJSStatic surface (type-level)', () =>
     // Every assignment below fails `tsc --noEmit` if the shim is missing a
     // method or has the wrong signature.
     const init: (options?: IInitOptions) => void = lib.init;
-    const createLocalTracks: (options?: ILocalTrackOptions) => Promise<JitsiLocalTrack[]> =
-      lib.createLocalTracks;
+    const createLocalTracks: (options?: ILocalTrackOptions) => Promise<JitsiLocalTrack[]> = lib.createLocalTracks;
     const setLogLevel: (level: string) => void = lib.setLogLevel;
     const mediaDevices = lib.mediaDevices;
     const setAudioOutputDevice: (deviceId: string) => Promise<void> = mediaDevices.setAudioOutputDevice;
@@ -202,11 +199,34 @@ describe('lib-jitsi-meet shim — JitsiMeetJSStatic surface (type-level)', () =>
     const setAudioOutput: (deviceId: string) => Promise<void> = track.setAudioOutput;
 
     for (const fn of [
-      init, createLocalTracks, setLogLevel, setAudioOutputDevice, isDesktopSharingEnabled,
-      connect, initJitsiConference, join, leave, sendEndpointMessage, broadcastEndpointMessage,
-      sendTextMessage, setDisplayName, setReceiverConstraints, setAudioSubscriptionMode,
-      myUserId, getParticipants, attach, detach, getParticipantId, getSourceName,
-      getOriginalStream, isMuted, mute, unmute, getVideoType, getType, setAudioOutput,
+      init,
+      createLocalTracks,
+      setLogLevel,
+      setAudioOutputDevice,
+      isDesktopSharingEnabled,
+      connect,
+      initJitsiConference,
+      join,
+      leave,
+      sendEndpointMessage,
+      broadcastEndpointMessage,
+      sendTextMessage,
+      setDisplayName,
+      setReceiverConstraints,
+      setAudioSubscriptionMode,
+      myUserId,
+      getParticipants,
+      attach,
+      detach,
+      getParticipantId,
+      getSourceName,
+      getOriginalStream,
+      isMuted,
+      mute,
+      unmute,
+      getVideoType,
+      getType,
+      setAudioOutput,
     ]) {
       // Compile-time proof only — the refs come from a stub in node.
       expect(typeof fn === 'function' || fn === undefined).toBe(true);

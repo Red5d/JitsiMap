@@ -4,32 +4,24 @@
  * client.ts is browser-only (lib-jitsi-meet UMD) and is NOT imported here.
  */
 
+import type { JitsiConference } from 'lib-jitsi-meet';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  MessagingHub,
-  POSE_SWEEP_INTERVAL_MS,
-  type MessagingStore,
-} from '../src/jitsi/messaging';
-import {
-  MAX_VIDEO_SOURCES,
-  applyReceiverConstraints,
-  buildReceiverConstraints,
-} from '../src/jitsi/constraints';
+import type { VideoPlan } from '../src/jitsi/api';
+import { applyReceiverConstraints, buildReceiverConstraints, MAX_VIDEO_SOURCES } from '../src/jitsi/constraints';
+import { MessagingHub, type MessagingStore, POSE_SWEEP_INTERVAL_MS } from '../src/jitsi/messaging';
 import {
   EMOTE_RATE_LIMIT_MS,
-  POSE_HEARTBEAT_MS,
-  STATE_REQUEST_DELAY_MS,
+  type EncodedMessage,
   encodeAvatar,
   encodeHello,
   encodePose,
   encodeState,
   encodeStateRequest,
-  type EncodedMessage,
+  POSE_HEARTBEAT_MS,
+  STATE_REQUEST_DELAY_MS,
   type ValidationCtx,
 } from '../src/protocol';
-import type { VideoPlan } from '../src/jitsi/api';
 import type { AvatarInfo, Emote, Pose, RemoteState, ZoneDef } from '../src/types';
-import type { JitsiConference } from 'lib-jitsi-meet';
 
 const CTX: ValidationCtx = {
   widthPx: 1280,

@@ -20,10 +20,9 @@
  *    "map failed to load" state.
  */
 
-import { TILE_SIZE, type MapData, type SpawnPoint, type ZoneDef } from '../types';
+import { type MapData, type SpawnPoint, TILE_SIZE, type ZoneDef } from '../types';
 
 /** Tiled stores flip/transpose flags in the high bits of a gid. */
-const FLIP_FLAGS = 0xf000_0000;
 const TILE_ID_MASK = 0x0fff_ffff;
 
 /** One embedded tileset, reduced to what the Phaser renderer needs (MVP: image tilesets only). */
@@ -171,7 +170,12 @@ function resolveTilesets(doc: Doc): { render: RenderTileset[]; collide: Map<numb
   return { render, collide };
 }
 
-function buildCollision(data: number[][], width: number, height: number, collide: Map<number, (id: number) => boolean>): Uint8Array {
+function buildCollision(
+  data: number[][],
+  width: number,
+  height: number,
+  collide: Map<number, (id: number) => boolean>,
+): Uint8Array {
   const grid = new Uint8Array(width * height);
   // Highest firstgid first: a gid belongs to the tileset with the largest
   // firstgid that is ≤ gid.
@@ -202,7 +206,8 @@ function extractZones(doc: Doc, id: string): ZoneDef[] {
     const where = `Map "${id}": zone object #${index + 1}`;
     let zoneId: string | null = null;
     if (typeof props.zone === 'string' && props.zone.trim() !== '') zoneId = props.zone.trim();
-    else if (props.zone !== undefined && props.zone !== null && String(props.zone).trim() !== '') zoneId = String(props.zone).trim();
+    else if (props.zone !== undefined && props.zone !== null && String(props.zone).trim() !== '')
+      zoneId = String(props.zone).trim();
     else if (typeof obj.name === 'string' && obj.name.trim() !== '') zoneId = obj.name.trim();
     else throw new Error(`${where}: missing required "zone" property`);
     const w = num(obj.width);

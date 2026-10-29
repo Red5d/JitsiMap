@@ -14,7 +14,7 @@ import type { VideoPlan } from '../jitsi/api';
 import { MAX_VIDEO_SOURCES } from '../jitsi/constraints';
 import type { Store } from '../store';
 import { isPoseLess } from '../types';
-import { VIDEO_RADIUS_TILES, distanceTiles, spatialGain, zoneAudible } from './distance';
+import { distanceTiles, spatialGain, VIDEO_RADIUS_TILES, zoneAudible } from './distance';
 
 /** §9.2: onStageSources = 1–4 nearest. */
 export const ON_STAGE_SOURCES = 4;
@@ -77,7 +77,7 @@ export function computeVideoPlan(store: Store, localId: string, deps: PlanDeps):
   const lp = store.getLocalPose();
   if (!lp) return plan; // local avatar not on the map yet ⇒ nothing to select around
   const zones = store.zones();
-  const lz = lp.zone ? zones.get(lp.zone) ?? null : null;
+  const lz = lp.zone ? (zones.get(lp.zone) ?? null) : null;
   const participants = store.getSnapshot().participants;
 
   const candidates: { source: string; d: number }[] = [];
@@ -86,7 +86,7 @@ export function computeVideoPlan(store: Store, localId: string, deps: PlanDeps):
     if (!p.hasVideo || p.camMuted || !p.videoSourceName) continue; // camera-off shows emoji (§16.3)
     if (!p.pose) continue; // pose-less excluded from bubbles (§7.7)
     const t = p.pose.target; // audio/video target pose is fine (§11 smoothing covers it)
-    const sz = t.zone ? zones.get(t.zone) ?? null : null;
+    const sz = t.zone ? (zones.get(t.zone) ?? null) : null;
     if (!zoneAudible(sz, lz)) continue; // §9.1 zone rule
     const d = distanceTiles(t.x, t.y, lp.x, lp.y);
     if (d > VIDEO_RADIUS_TILES) continue;
@@ -107,7 +107,7 @@ export function computeVideoPlan(store: Store, localId: string, deps: PlanDeps):
   if (deps.stageDesktopOpen) {
     for (const p of participants) {
       if (p.id === localId || !p.hasDesktop || !p.desktopSourceName) continue;
-      const sz = p.pose?.target.zone ? zones.get(p.pose.target.zone) ?? null : null;
+      const sz = p.pose?.target.zone ? (zones.get(p.pose.target.zone) ?? null) : null;
       if (zoneAudible(sz, lz)) plan.stageDesktopSource = p.desktopSourceName;
       break;
     }
@@ -119,6 +119,7 @@ export function computeVideoPlan(store: Store, localId: string, deps: PlanDeps):
  * Trailing-edge debounce for the planner loops (§8.4/§9.2: 500 ms). The
  * latest call's arguments win; `cancel()` drops a pending call (leave).
  */
+// biome-ignore lint/suspicious/noExplicitAny: generic over any-arity callbacks
 export function debounce<T extends (...args: any[]) => void>(fn: T, ms: number): T & { cancel(): void } {
   let timer: ReturnType<typeof setTimeout> | null = null;
   const wrapped = ((...args: Parameters<T>): void => {

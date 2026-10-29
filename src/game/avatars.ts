@@ -19,9 +19,9 @@
 import Phaser from 'phaser';
 
 import { store } from '../store';
-import { TILE_SIZE, type AvatarInfo, type ReceivedPose, type ZoneDef } from '../types';
-import { SNAP_DISTANCE_PX, interpolatePose } from './viewport';
+import { type AvatarInfo, type ReceivedPose, TILE_SIZE, type ZoneDef } from '../types';
 import type { GameMapData } from './maps';
+import { interpolatePose, SNAP_DISTANCE_PX } from './viewport';
 
 /** Audio level above which the speaking ring shows (TRACK_AUDIO_LEVEL_CHANGED 0..1). */
 export const SPEAKING_LEVEL_THRESHOLD = 0.03;
@@ -92,7 +92,7 @@ export class AvatarManager {
 
   constructor(
     private scene: Phaser.Scene,
-    private map: GameMapData,
+    readonly map: GameMapData,
     private cb: AvatarCallbacks,
   ) {
     this.localSprite = this.createAvatar(store.getSnapshot().local.name, store.getSnapshot().local.avatar, true);
@@ -212,9 +212,7 @@ export class AvatarManager {
   private spawnEmote(endpointId: string, emoji: string): void {
     const snap = store.getSnapshot();
     const target =
-      endpointId === (snap.local.id ?? 'local')
-        ? this.localSprite
-        : this.remotes.get(endpointId)?.container ?? null;
+      endpointId === (snap.local.id ?? 'local') ? this.localSprite : (this.remotes.get(endpointId)?.container ?? null);
     if (!target) return;
     const t = this.scene.add
       .text(target.x, target.y - BASE_RADIUS - 22, emoji, { fontFamily: EMOJI_FONT, fontSize: '24px' })
@@ -289,10 +287,7 @@ export class AvatarManager {
       })
       .setOrigin(0.5, 0)
       .setResolution(2);
-    const mute = s.add
-      .text(11, -14, '🔇', { fontFamily: BADGE_FONT })
-      .setOrigin(0.5)
-      .setVisible(false);
+    const mute = s.add.text(11, -14, '🔇', { fontFamily: BADGE_FONT }).setOrigin(0.5).setVisible(false);
     const container = s.add.container(0, 0, [base, emoji, label, mute]).setDepth(DEPTH_BASE);
     container.setSize(BASE_RADIUS * 2 + 12, BASE_RADIUS * 2 + 12);
     if (interactive) {

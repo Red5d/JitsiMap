@@ -6,12 +6,7 @@
 
 import { store } from '../../store';
 import { useStore } from '../hooks';
-import {
-  POSELESS_LABEL,
-  peopleStatusLabel,
-  sliderToVolume,
-  volumeToSlider,
-} from '../util';
+import { POSELESS_LABEL, peopleStatusLabel, sliderToVolume, volumeToSlider } from '../util';
 
 export interface PeoplePanelProps {
   localId: string | null;
@@ -44,19 +39,25 @@ export function PeoplePanel({ localId, notices }: PeoplePanelProps) {
                 <div className="jm-person__name">{p.name || 'Guest'}</div>
                 <div
                   className={
-                    status === POSELESS_LABEL
-                      ? 'jm-person__status jm-person__status--poseless'
-                      : 'jm-person__status'
+                    status === POSELESS_LABEL ? 'jm-person__status jm-person__status--poseless' : 'jm-person__status'
                   }
                 >
                   {status}
                 </div>
               </div>
               <div className="jm-person__icons">
-                <span title={p.micMuted ? 'Microphone muted' : 'Microphone on'} aria-label={p.micMuted ? 'Microphone muted' : 'Microphone on'}>
+                <span
+                  role="img"
+                  title={p.micMuted ? 'Microphone muted' : 'Microphone on'}
+                  aria-label={p.micMuted ? 'Microphone muted' : 'Microphone on'}
+                >
                   {p.micMuted ? '🔇' : '🎙️'}
                 </span>
-                <span title={p.camMuted ? 'Camera off' : 'Camera on'} aria-label={p.camMuted ? 'Camera off' : 'Camera on'}>
+                <span
+                  role="img"
+                  title={p.camMuted ? 'Camera off' : 'Camera on'}
+                  aria-label={p.camMuted ? 'Camera off' : 'Camera on'}
+                >
                   {p.camMuted ? '📷' : '📹'}
                 </span>
                 {p.hasDesktop && <span title="Sharing their screen">🖥️</span>}

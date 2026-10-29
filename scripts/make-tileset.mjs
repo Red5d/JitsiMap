@@ -16,7 +16,7 @@
 // hand-coloured 32x32 strip (floors, walls, door, furniture) in the same style
 // the validator/preview expect, so tooling keeps working offline.
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodePng, encodePngRgb } from './png.mjs';
@@ -27,7 +27,8 @@ import { decodePng, encodePngRgb } from './png.mjs';
  * @param {number} factor
  */
 export function scaleNearest(img, factor) {
-  if (!Number.isInteger(factor) || factor < 1) throw new Error(`scaleNearest: factor must be a positive integer, got ${factor}`);
+  if (!Number.isInteger(factor) || factor < 1)
+    throw new Error(`scaleNearest: factor must be a positive integer, got ${factor}`);
   const width = img.width * factor;
   const height = img.height * factor;
   const data = Buffer.alloc(width * height * 4);
@@ -101,9 +102,10 @@ export function makeFlatTileset(cols = 5) {
     const rgb = (hex) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
     fillRect(data, width, ox, oy, size, size, rgb(base));
     // Subtle checker so tiles read as tiles, plus a 1px darker edge.
-    for (let y = 0; y < size; y += 8) for (let x = 0; x < size; x += 8) {
-      if (((x + y) / 8) % 2 === 0) fillRect(data, width, ox + x, oy + y, 8, 8, rgb(alt));
-    }
+    for (let y = 0; y < size; y += 8)
+      for (let x = 0; x < size; x += 8) {
+        if (((x + y) / 8) % 2 === 0) fillRect(data, width, ox + x, oy + y, 8, 8, rgb(alt));
+      }
     fillRect(data, width, ox, oy, size, 1, [0, 0, 0, 60]);
     fillRect(data, width, ox, oy + size - 1, size, 1, [0, 0, 0, 60]);
   });
@@ -113,7 +115,7 @@ export function makeFlatTileset(cols = 5) {
 function usage() {
   console.log(
     'usage: node scripts/make-tileset.mjs <source-sheet.png> [--out <png>] [--tile 16] [--scale 2]\n' +
-      '       node scripts/make-tileset.mjs --generate-flat <name> [--out <png>] [--cols 5]'
+      '       node scripts/make-tileset.mjs --generate-flat <name> [--out <png>] [--cols 5]',
   );
 }
 
@@ -164,7 +166,9 @@ export async function main(argv = process.argv.slice(2)) {
   const scaled = scale === 1 ? img : scaleNearest(img, scale);
   const outTile = tile * scale;
   if (outTile !== 32) console.warn(`note: tiles are ${outTile}px, maps require 32px (SPEC §10.1)`);
-  const target = out ? path.resolve(out) : path.join(repoRoot, 'public/maps/tilesets', path.basename(src, path.extname(src)) + '.png');
+  const target = out
+    ? path.resolve(out)
+    : path.join(repoRoot, 'public/maps/tilesets', `${path.basename(src, path.extname(src))}.png`);
   await mkdir(path.dirname(target), { recursive: true });
 
   // Drop the alpha channel: the tile sheet is opaque, and the encoder writes RGB.
@@ -172,7 +176,7 @@ export async function main(argv = process.argv.slice(2)) {
   await writeFile(target, encodePngRgb(scaled.width, scaled.height, rgb));
   console.log(
     `${target}: ${scaled.width}x${scaled.height}, ${scaled.width / 32}x${scaled.height / 32} tiles of 32px` +
-      ` (from ${img.width}x${img.height} ${tile}px tiles, ${scale}x nearest-neighbour)`
+      ` (from ${img.width}x${img.height} ${tile}px tiles, ${scale}x nearest-neighbour)`,
   );
   return 0;
 }

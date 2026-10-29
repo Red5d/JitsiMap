@@ -14,13 +14,12 @@
  */
 
 import Phaser from 'phaser';
-
+import { EMOTE_RATE_LIMIT_MS } from '../protocol';
 import { store } from '../store';
 import { TILE_SIZE, type ZoneDef } from '../types';
-import { EMOTE_RATE_LIMIT_MS } from '../protocol';
-import { resolveGid } from './maps';
-import type { GameMapData } from './maps';
 import { AvatarManager } from './avatars';
+import type { GameMapData } from './maps';
+import { resolveGid } from './maps';
 import { MovementController } from './movement';
 import { MAX_ZOOM, MIN_ZOOM } from './viewport';
 
@@ -62,9 +61,11 @@ export class MapScene extends Phaser.Scene {
   init(data: SceneData | Phaser.Data.DataManager): void {
     // Scene data arrives as a plain object (scene.start) or a DataManager
     // (game config `data`), so normalise via getAll().
-    const d = (typeof (data as Phaser.Data.DataManager)?.getAll === 'function'
-      ? (data as Phaser.Data.DataManager).getAll()
-      : data) as SceneData;
+    const d = (
+      typeof (data as Phaser.Data.DataManager)?.getAll === 'function'
+        ? (data as Phaser.Data.DataManager).getAll()
+        : data
+    ) as SceneData;
     this.mapData = d.mapData;
     this.callbacks = d.callbacks ?? { onEmote: () => {} };
     this.debugZones = d.debugZones === true;
@@ -155,7 +156,11 @@ export class MapScene extends Phaser.Scene {
       for (let i = 0; i < layer.data.length; i++) {
         const hit = resolveGid(map, layer.data[i]!);
         if (!hit) continue; // empty tile / unknown gid — skip (§10.2)
-        rt.draw(this.textures.getFrame(hit.key, hit.frame), (i % map.width) * TILE_SIZE, Math.floor(i / map.width) * TILE_SIZE);
+        rt.draw(
+          this.textures.getFrame(hit.key, hit.frame),
+          (i % map.width) * TILE_SIZE,
+          Math.floor(i / map.width) * TILE_SIZE,
+        );
       }
     }
   }
@@ -226,7 +231,11 @@ export function createGame(
       height: Math.max(1, parent.clientHeight),
     },
     scene: [
-      { key: 'jitmap', active: true, data: { mapData, callbacks, debugZones: opts.debugZones } } as unknown as Phaser.Types.Scenes.SettingsConfig,
+      {
+        key: 'jitmap',
+        active: true,
+        data: { mapData, callbacks, debugZones: opts.debugZones },
+      } as unknown as Phaser.Types.Scenes.SettingsConfig,
     ],
   });
   return {

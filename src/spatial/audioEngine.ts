@@ -22,8 +22,8 @@
 
 import { getTrackStream } from '../jitsi/tracks';
 import type { Store } from '../store';
-import { isPoseLess, type AudioTier } from '../types';
-import { POSELESS_GAIN, finalGain, panFor, spatialGain } from './distance';
+import { type AudioTier, isPoseLess } from '../types';
+import { finalGain, POSELESS_GAIN, panFor, spatialGain } from './distance';
 
 /** Gain/pan smoothing time constant (§8.1: τ ≈ 0.05 s). */
 const SMOOTH_TAU_S = 0.05;
@@ -133,7 +133,9 @@ export function createAudioEngine(store: Store): AudioEngine {
       // No live stream — do NOT build a node from an empty/absent stream.
       if (!warned.has(id)) {
         warned.add(id);
-        console.warn(`[jitsimap] audioEngine: no live audio stream for ${id}; graph skipped (re-attach on TRACK_ADDED)`);
+        console.warn(
+          `[jitsimap] audioEngine: no live audio stream for ${id}; graph skipped (re-attach on TRACK_ADDED)`,
+        );
       }
       return;
     }
@@ -208,8 +210,10 @@ export function createAudioEngine(store: Store): AudioEngine {
       const sp = p.pose?.target ?? null; // remote audio at the target pose is fine (§11 τ-smoothing)
       const poseless = isPoseLess(p, now);
       let spatial: number;
-      if (poseless) spatial = POSELESS_GAIN; // §7.7: flat, pan 0, zones ignored
-      else if (!sp || !lp) spatial = 1; // listener not on the map yet: flat
+      if (poseless)
+        spatial = POSELESS_GAIN; // §7.7: flat, pan 0, zones ignored
+      else if (!sp || !lp)
+        spatial = 1; // listener not on the map yet: flat
       else spatial = spatialGain(lp, sp, zones);
       // Spatial node = distance/zone × tier × mic-mute × mute-other;
       // per-user volume and master live on their own nodes (§8.1 chain).

@@ -13,8 +13,16 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  extractSpawns,
+  extractZones,
+  gidOwner,
+  layerByName,
+  loadMapDocument,
+  resolveTilesets,
+  TILE_SIZE,
+} from './maplib.mjs';
 import { decodePng, encodePngRgb } from './png.mjs';
-import { gidOwner, loadMapDocument, resolveTilesets, layerByName, extractZones, extractSpawns, TILE_SIZE } from './maplib.mjs';
 
 // ---------------------------------------------------------------- 5x7 font
 // A-Z 0-9 '-' '_' ' ' (row 0 = top). '#' = lit pixel. Unknown characters are
@@ -143,7 +151,9 @@ async function loadTilesetImages(resolved) {
     try {
       cache.set(image, { file, img: decodePng(await readFile(file)) });
     } catch (err) {
-      console.warn(`warning: tileset image "${image}" could not be read (${/** @type {Error} */ (err).message}); rendering placeholders`);
+      console.warn(
+        `warning: tileset image "${image}" could not be read (${/** @type {Error} */ (err).message}); rendering placeholders`,
+      );
       cache.set(image, null);
     }
   }
@@ -267,7 +277,7 @@ export async function renderMap(doc, baseDir, options = {}) {
     canvas.fillRect(cx - t / 2, cy - t / 2 - r, t, r * 2 + t, 0, 0, 0, 200);
     canvas.fillRect(cx - t / 2 - r + 1, cy - t / 2 + 1, r * 2 + t - 2, t - 2, 40, 220, 60, 255);
     canvas.fillRect(cx - t / 2 + 1, cy - t / 2 - r + 1, t - 2, r * 2 + t - 2, 40, 220, 60, 255);
-    drawText(canvas, spawn.id, cx + r + 3 * scale, cy - GLYPH_H * scale / 2, scale, [180, 255, 190]);
+    drawText(canvas, spawn.id, cx + r + 3 * scale, cy - (GLYPH_H * scale) / 2, scale, [180, 255, 190]);
   }
 
   return { width: canvas.width, height: canvas.height, rgb: canvas.data, warnings };
@@ -306,15 +316,16 @@ export async function main(argv = process.argv.slice(2)) {
   const { doc, dir } = await loadMapDocument(mapFile);
   const { width, height, rgb, warnings } = await renderMap(doc, dir, { scale });
   for (const w of warnings) console.warn(`${mapFile}: warning: ${w}`);
-  const target = outFile ? path.resolve(outFile) : path.join(dir, 'previews', `${path.basename(mapFile, path.extname(mapFile))}.png`);
+  const target = outFile
+    ? path.resolve(outFile)
+    : path.join(dir, 'previews', `${path.basename(mapFile, path.extname(mapFile))}.png`);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, encodePngRgb(width, height, Buffer.from(rgb)));
   console.log(`${mapFile}: wrote ${target} (${width}x${height})`);
   return 0;
 }
 
-const invokedDirectly =
-  process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invokedDirectly) {
   main().catch((err) => {
     console.error(String(/** @type {Error} */ (err).message ?? err));
