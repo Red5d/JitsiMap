@@ -144,7 +144,10 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
             onZoneChange: (z) => setAria((a) => ({ ...a, zone: z ? (z.label ?? z.id) : null })),
             onNearbyChange: (n) => setAria((a) => ({ ...a, nearby: n })),
           },
-          { debugZones: new URLSearchParams(window.location.search).has('debugZones') },
+          {
+            debugZones: new URLSearchParams(window.location.search).has('debugZones'),
+            debugExpose: new URLSearchParams(window.location.search).has('debugGame'),
+          },
         );
         gameRef.current = handle;
       })
@@ -351,7 +354,7 @@ export function Room({ session, onLeave, onRetry }: RoomProps) {
       />
 
       {settingsOpen && (
-        /* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: backdrop click; Esc is the keyboard equivalent */
+        /* biome-ignore lint/a11y/noStaticElementInteractions: backdrop click; Esc is the keyboard equivalent */
         <div
           className="jm-modal"
           role="presentation"

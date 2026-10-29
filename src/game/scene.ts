@@ -219,7 +219,7 @@ export function createGame(
   parent: HTMLElement,
   mapData: GameMapData,
   callbacks: GameCallbacks = { onEmote: () => {} },
-  opts: { debugZones?: boolean } = {},
+  opts: { debugZones?: boolean; debugExpose?: boolean } = {},
 ): GameHandle {
   const game = new Phaser.Game({
     type: Phaser.AUTO,
@@ -230,14 +230,21 @@ export function createGame(
       width: Math.max(1, parent.clientWidth),
       height: Math.max(1, parent.clientHeight),
     },
-    scene: [
-      {
-        key: 'jitmap',
-        active: true,
-        data: { mapData, callbacks, debugZones: opts.debugZones },
-      } as unknown as Phaser.Types.Scenes.SettingsConfig,
-    ],
   });
+  // Boot the scene explicitly AFTER the game is ready: Phaser passes
+  // SceneManager.add()'s `data` to init() via settings.data — a scene entry
+  // inside the Game config cannot carry it (settings.data is hardcoded {}
+  // there and the scene auto-boots without payload).
+  game.events.once(Phaser.Core.Events.READY, () => {
+    game.scene.add('jitmap', new MapScene(), true, {
+      mapData,
+      callbacks,
+      debugZones: opts.debugZones,
+    });
+  });
+  if (opts.debugExpose) {
+    (window as unknown as { __jitmapGame: Phaser.Game }).__jitmapGame = game;
+  }
   return {
     destroy(): void {
       game.destroy(true);
