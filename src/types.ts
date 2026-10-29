@@ -153,6 +153,7 @@ export interface RemoteState {
    * Live lib-jitsi-meet JitsiTrack objects for rendering. Untyped here to
    * keep this module lib-free; UI casts them at the `src/jitsi/` seam.
    */
+  audioTrack: unknown | null;
   videoTrack: unknown | null;
   desktopTrack: unknown | null;
 }

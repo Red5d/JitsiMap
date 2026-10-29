@@ -192,6 +192,7 @@ export class Store {
           audioLevel: 0,
           volume: 1,
           mutedForMe: false,
+          audioTrack: null,
           videoTrack: null,
           desktopTrack: null,
           ...patch,
