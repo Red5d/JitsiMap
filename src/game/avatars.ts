@@ -30,10 +30,13 @@ export const EMOTE_BURST_MS = 2000;
 /** "Nearby" radius for the §5.5 aria label — matches HEAR_RADIUS_TILES (8×32). */
 export const NEARBY_RADIUS_PX = 8 * TILE_SIZE;
 
-const BASE_RADIUS = 18;
-const EMOJI_FONT = '34px "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif';
-const LABEL_FONT = '15px system-ui, sans-serif';
-const BADGE_FONT = '18px "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+const BASE_RADIUS = 22;
+// Family lists only — the pixel size goes in `fontSize` (a size inside
+// `fontFamily` makes the generated canvas font string invalid and the
+// browser silently falls back to its ~10px default).
+const EMOJI_FAMILY = '"Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif';
+const LABEL_FAMILY = 'system-ui, sans-serif';
+const BADGE_FAMILY = '"Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 
 /** Avatar container depths: under the `above` layer (30), sorted by y. */
 const DEPTH_BASE = 10;
@@ -101,8 +104,8 @@ export class AvatarManager {
     // Zone label: screen-fixed (scrollFactor 0), fades in on zone entry (§5.2).
     this.zoneLabel = scene.add
       .text(scene.scale.width / 2, 16, '', {
-        fontFamily: LABEL_FONT,
-        fontSize: '15px',
+        fontFamily: LABEL_FAMILY,
+        fontSize: '16px',
         color: '#f2f2f5',
         backgroundColor: 'rgba(12,12,20,0.65)',
         padding: { x: 8, y: 4 },
@@ -215,7 +218,7 @@ export class AvatarManager {
       endpointId === (snap.local.id ?? 'local') ? this.localSprite : (this.remotes.get(endpointId)?.container ?? null);
     if (!target) return;
     const t = this.scene.add
-      .text(target.x, target.y - BASE_RADIUS - 26, emoji, { fontFamily: EMOJI_FONT, fontSize: '30px' })
+      .text(target.x, target.y - BASE_RADIUS - 30, emoji, { fontFamily: EMOJI_FAMILY, fontSize: '38px' })
       .setOrigin(0.5)
       .setDepth(50);
     this.emotes.add(t);
@@ -277,17 +280,24 @@ export class AvatarManager {
   private createAvatarView(name: string, avatar: AvatarInfo, interactive: boolean): AvatarView {
     const s = this.scene;
     const base = s.add.graphics();
-    const emoji = s.add.text(0, -3, avatar.emoji, { fontFamily: EMOJI_FONT }).setOrigin(0.5);
+    const emoji = s.add
+      .text(0, -3, avatar.emoji, { fontFamily: EMOJI_FAMILY, fontSize: '38px' })
+      .setOrigin(0.5)
+      .setResolution(2);
     const label = s.add
       .text(0, BASE_RADIUS + 1, truncate(name, 24), {
-        fontFamily: LABEL_FONT,
+        fontFamily: LABEL_FAMILY,
+        fontSize: '16px',
         color: '#f2f2f5',
         backgroundColor: 'rgba(10,10,16,0.55)',
-        padding: { x: 4, y: 2 },
+        padding: { x: 5, y: 2 },
       })
       .setOrigin(0.5, 0)
       .setResolution(2);
-    const mute = s.add.text(16, -21, '🔇', { fontFamily: BADGE_FONT }).setOrigin(0.5).setVisible(false);
+    const mute = s.add
+      .text(20, -26, '🔇', { fontFamily: BADGE_FAMILY, fontSize: '20px' })
+      .setOrigin(0.5)
+      .setVisible(false);
     const container = s.add.container(0, 0, [base, emoji, label, mute]).setDepth(DEPTH_BASE);
     container.setSize(BASE_RADIUS * 2 + 12, BASE_RADIUS * 2 + 12);
     if (interactive) {
