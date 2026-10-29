@@ -277,6 +277,13 @@ describe('validator catches broken maps', () => {
     expect(errors.some((e: string) => e.includes('zone "hall" is outside the map bounds'))).toBe(true);
   });
 
+  it('non-numeric zone geometry is rejected (§10.5)', async () => {
+    const doc = officeDoc();
+    objectLayer(doc, 'zones').objects[0].x = 'oops';
+    const { errors } = await fixture('zone-bad-geom.tmj', doc);
+    expect(errors.some((e: string) => e.includes('non-numeric geometry'))).toBe(true);
+  });
+
   it('audibleFrom references unknown zone', async () => {
     const doc = officeDoc();
     const stage = objectLayer(doc, 'zones').objects.find((o: any) => o.name === 'stage');

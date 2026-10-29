@@ -1,7 +1,5 @@
 /**
- * People panel (SPEC §5.4/§7.7/§8.5/§9.3) — PLACEHOLDER stub created by the
- * app-shell agent so Room wiring compiles; the parallel panels agent owns this
- * file and will replace the body. Props contract is FIXED:
+ * People panel (SPEC §5.4/§7.7/§8.5/§9.3). Props contract:
  * { localId, notices } — `notices` carries the §9.3 stage-share queue /
  * "X is sharing in <zone>" strings computed by the Room.
  */

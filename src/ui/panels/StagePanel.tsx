@@ -1,7 +1,5 @@
 /**
- * Stage panel (SPEC §9.3) — PLACEHOLDER stub created by the app-shell agent
- * so Room wiring compiles; the parallel panels agent owns this file and will
- * replace the body. Props contract is FIXED: { participantId, onDismiss }.
+ * Stage panel (SPEC §9.3). Props contract: { participantId, onDismiss }.
  * The Room applies the §9.3 viewability rule + one-share-at-a-time queue;
  * this panel only renders the share and its dismiss control.
  */

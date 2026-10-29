@@ -1,7 +1,6 @@
 /**
- * Settings panel (SPEC §5.4/§8.5/§8.6) — PLACEHOLDER stub created by the
- * app-shell agent so Room wiring compiles; the parallel panels agent owns this
- * file and will replace the body. Props contract is FIXED: { client, onClose }.
+ * Settings panel (SPEC §5.4/§8.5/§8.6).
+ * Props contract: { client, onClose }.
  * Rendered by the Room inside `.jm-modal` (backdrop + card chrome live there);
  * this component renders the `.jm-settings` card content.
  */

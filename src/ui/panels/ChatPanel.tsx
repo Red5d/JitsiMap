@@ -1,7 +1,5 @@
 /**
- * Chat panel (SPEC §5.4/§7.6/§14) — PLACEHOLDER stub created by the app-shell
- * agent so Room wiring compiles; the parallel panels agent owns this file and
- * will replace the body. Props contract is FIXED: { onSend }.
+ * Chat panel (SPEC §5.4/§7.6/§14). Props contract: { onSend }.
  * Chat is rendered as plain text nodes, never HTML (§14); the util chat-text
  * helper is identity-by-design and applied at the render seam.
  */

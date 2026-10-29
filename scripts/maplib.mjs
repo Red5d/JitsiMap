@@ -290,6 +290,12 @@ export function extractZones(doc) {
     const stage = asBool(props.stage);
     if (silent.coerced) warnings.push(`${where} (${id}): silent="${silent.coercedFrom}" coerced to ${silent.value}`);
     if (stage.coerced) warnings.push(`${where} (${id}): stage="${stage.coercedFrom}" coerced to ${stage.value}`);
+    const badGeom = [];
+    for (const key of ['x', 'y', 'width', 'height']) {
+      const v = obj?.[key];
+      if (typeof v !== 'number' || !Number.isFinite(v)) badGeom.push(`${key}=${JSON.stringify(v)}`);
+    }
+    if (badGeom.length > 0) errors.push(`zone "${id}": non-numeric geometry: ${badGeom.join(', ')}`);
     zones.push({
       id,
       label: typeof props.label === 'string' ? props.label : '',
