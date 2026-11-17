@@ -19,7 +19,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { decodePng, encodePngRgb } from './png.mjs';
+import { decodePng, encodePngRgb, encodePngRgba } from './png.mjs';
 
 /**
  * Nearest-neighbour upscale of an RGBA image by an integer factor.
@@ -171,9 +171,18 @@ export async function main(argv = process.argv.slice(2)) {
     : path.join(repoRoot, 'public/maps/tilesets', `${path.basename(src, path.extname(src))}.png`);
   await mkdir(path.dirname(target), { recursive: true });
 
-  // Drop the alpha channel: the tile sheet is opaque, and the encoder writes RGB.
-  const rgb = rgbaToRgb(scaled.data, scaled.width, scaled.height);
-  await writeFile(target, encodePngRgb(scaled.width, scaled.height, rgb));
+  // Preserve alpha if the source sheet has any transparent pixels; otherwise write RGB.
+  let hasAlpha = false;
+  for (let i = 3; i < scaled.data.length; i += 4) {
+    if (scaled.data[i] !== 255) {
+      hasAlpha = true;
+      break;
+    }
+  }
+  const pngBytes = hasAlpha
+    ? encodePngRgba(scaled.width, scaled.height, scaled.data)
+    : encodePngRgb(scaled.width, scaled.height, rgbaToRgb(scaled.data, scaled.width, scaled.height));
+  await writeFile(target, pngBytes);
   console.log(
     `${target}: ${scaled.width}x${scaled.height}, ${scaled.width / 32}x${scaled.height / 32} tiles of 32px` +
       ` (from ${img.width}x${img.height} ${tile}px tiles, ${scale}x nearest-neighbour)`,

@@ -19,7 +19,7 @@ CC0 / CC-BY only, no sprites ripped from commercial games (SPEC §10.3).
 **Scaling note (why the shipped sheet is not the original pixels):** JitsiMap
 maps are a 32×32 grid (SPEC §10.1) and this pack ships 16×16 tiles, so the
 sheet was upscaled **2× with exact nearest-neighbour** (pixels duplicated, no
-resampling, no artwork redrawn) by `scripts/make-tileset.mjs`:
+resampling, no artwork redrawn, alpha transparency preserved) by `scripts/make-tileset.mjs`:
 
 ```bash
 node scripts/make-tileset.mjs public/maps/tilesets/tiny-dungeon-16.png \
@@ -42,28 +42,27 @@ with `node -e "import('./scripts/make-starter-map.mjs').then(m=>console.log(m.ti
 |---|---|---|---|---|---|
 | `floor-1` | 48 | 49 | 0,4 | no | warm tan floor (hall floor) |
 | `floor-2` | 49 | 50 | 1,4 | no | warm tan floor, speckled variant |
+| `floor-stones` | 42 | 43 | 6,3 | no | warm tan floor with flagstones |
 | `floor-dark-1` | 0 | 1 | 0,0 | no | dark brown floor (room floor) |
-| `floor-dark-2` | 12 | 13 | 0,1 | no | dark brown floor, speckled variant |
-| `floor-planks-1` | 36 | 37 | 0,3 | no | grey plank floor |
-| `floor-planks-2` | 37 | 38 | 1,3 | no | grey plank floor, variant |
-| `floor-planks-3` | 39 | 40 | 3,3 | no | grey plank floor, variant |
-| `floor-mat` | 31 | 32 | 7,2 | no | stone slab / step |
-| `rug` | 30 | 31 | 6,2 | no | pink rug |
+| `floor-planks-left` | 36 | 37 | 0,3 | no | grey stone platform, left edge |
+| `floor-planks-mid` | 37 | 38 | 1,3 | no | grey stone platform, middle |
+| `floor-planks-right` | 38 | 39 | 2,3 | no | grey stone platform, right edge |
+| `floor-steps` | 39 | 40 | 3,3 | no | vertical stone steps |
+| `mat` | 66 | 67 | 6,5 | no | woven floor mat / rug |
 | `wall` | 40 | 41 | 4,3 | **yes** | grey brick wall |
-| `wall-2` | 14 | 15 | 2,1 | **yes** | grey brick wall, variant (corners) |
-| `wall-3` | 58 | 59 | 10,4 | **yes** | brick wall, edging variant |
-| `wall-window` | 16 | 17 | 4,1 | **yes** | wall with a window |
-| `door` | 46 | 47 | 10,3 | no | wooden door in a brick wall (walkable) |
-| `table` | 54 | 55 | 6,4 | **yes** | grey table, seen from above |
-| `table-2` | 55 | 56 | 7,4 | **yes** | grey table, variant |
-| `chair` | 73 | 74 | 1,6 | no | small stool/chair (walk-over: people "sit") |
-| `shelf` | 75 | 76 | 3,6 | **yes** | wooden shelf/cabinet |
-| `shelf-2` | 63 | 64 | 3,5 | **yes** | wooden shelf, variant |
-| `shelf-3` | 41 | 42 | 5,3 | **yes** | supply shelf (doubles as a wall board) |
-| `planter` | 44 | 45 | 8,3 | **yes** | planter with a green plant |
-| `barrel` | 68 | 69 | 8,5 | **yes** | barrel |
-| `crate` | 70 | 71 | 10,5 | **yes** | wooden crate |
-| `banner` | 29 | 30 | 5,2 | **yes** | red banner (wall decoration) |
+| `wall-pillar` | 58 | 59 | 10,4 | **yes** | grey brick wall with stone pillar trim |
+| `wall-window` | 28 | 29 | 4,2 | **yes** | brick wall with barred window |
+| `wall-banner` | 29 | 30 | 5,2 | **yes** | brick wall with red banner |
+| `door-left` | 46 | 47 | 10,3 | no | wooden double door, left half (walkable) |
+| `door-right` | 47 | 48 | 11,3 | no | wooden double door, right half (walkable) |
+| `table` | 72 | 73 | 0,6 | **yes** | wooden table |
+| `chair` | 73 | 74 | 1,6 | no | small wooden stool/chair (walk-over: people "sit") |
+| `shelf` | 63 | 64 | 3,5 | **yes** | wooden shelf/cabinet |
+| `chest` | 89 | 90 | 5,7 | **yes** | wooden storage chest |
+| `crate` | 101 | 102 | 5,8 | **yes** | small wooden crate |
+| `rail-left` | 76 | 77 | 4,6 | **yes** | iron/stone railing, left post |
+| `rail-mid` | 77 | 78 | 5,6 | **yes** | iron/stone railing, middle |
+| `rail-right` | 78 | 79 | 6,6 | **yes** | iron/stone railing, right post |
 
 The other 108 tiles of the sheet are unused by the starter map but valid to
 paint with; read them from the sheet, never invent ids (the map-maker Skill

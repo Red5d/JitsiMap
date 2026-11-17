@@ -3,6 +3,9 @@
 /** Encode an 8-bit truecolor RGB image as PNG bytes. rgb is width*height*3. */
 export function encodePngRgb(width: number, height: number, rgb: Buffer | Uint8Array): Buffer;
 
+/** Encode an 8-bit truecolor RGBA image as PNG bytes. rgba is width*height*4. */
+export function encodePngRgba(width: number, height: number, rgba: Buffer | Uint8Array): Buffer;
+
 export interface DecodedPng {
   width: number;
   height: number;

@@ -1055,17 +1055,6 @@
           "type": "wall"
         },
         {
-          "id": 14,
-          "properties": [
-            {
-              "name": "collides",
-              "type": "bool",
-              "value": true
-            }
-          ],
-          "type": "wall"
-        },
-        {
           "id": 58,
           "properties": [
             {
@@ -1077,7 +1066,7 @@
           "type": "wall"
         },
         {
-          "id": 16,
+          "id": 28,
           "properties": [
             {
               "name": "collides",
@@ -1088,7 +1077,18 @@
           "type": "wall"
         },
         {
-          "id": 54,
+          "id": 29,
+          "properties": [
+            {
+              "name": "collides",
+              "type": "bool",
+              "value": true
+            }
+          ],
+          "type": "wall"
+        },
+        {
+          "id": 72,
           "properties": [
             {
               "name": "collides",
@@ -1099,18 +1099,7 @@
           "type": "table"
         },
         {
-          "id": 55,
-          "properties": [
-            {
-              "name": "collides",
-              "type": "bool",
-              "value": true
-            }
-          ],
-          "type": "table-2"
-        },
-        {
-          "id": 75,
+          "id": 63,
           "properties": [
             {
               "name": "collides",
@@ -1121,7 +1110,7 @@
           "type": "shelf"
         },
         {
-          "id": 63,
+          "id": 89,
           "properties": [
             {
               "name": "collides",
@@ -1129,43 +1118,10 @@
               "value": true
             }
           ],
-          "type": "shelf-2"
+          "type": "chest"
         },
         {
-          "id": 41,
-          "properties": [
-            {
-              "name": "collides",
-              "type": "bool",
-              "value": true
-            }
-          ],
-          "type": "shelf-3"
-        },
-        {
-          "id": 44,
-          "properties": [
-            {
-              "name": "collides",
-              "type": "bool",
-              "value": true
-            }
-          ],
-          "type": "planter"
-        },
-        {
-          "id": 68,
-          "properties": [
-            {
-              "name": "collides",
-              "type": "bool",
-              "value": true
-            }
-          ],
-          "type": "barrel"
-        },
-        {
-          "id": 70,
+          "id": 101,
           "properties": [
             {
               "name": "collides",
@@ -1176,7 +1132,7 @@
           "type": "crate"
         },
         {
-          "id": 29,
+          "id": 76,
           "properties": [
             {
               "name": "collides",
@@ -1184,7 +1140,29 @@
               "value": true
             }
           ],
-          "type": "banner"
+          "type": "rail-left"
+        },
+        {
+          "id": 77,
+          "properties": [
+            {
+              "name": "collides",
+              "type": "bool",
+              "value": true
+            }
+          ],
+          "type": "rail-mid"
+        },
+        {
+          "id": 78,
+          "properties": [
+            {
+              "name": "collides",
+              "type": "bool",
+              "value": true
+            }
+          ],
+          "type": "rail-right"
         }
       ]
     }

@@ -27,45 +27,42 @@ export const FIRSTGID = 1;
 export const TILES = {
   'floor-1': 48,
   'floor-2': 49,
+  'floor-stones': 42,
   'floor-dark-1': 0,
-  'floor-dark-2': 12,
-  'floor-planks-1': 36,
-  'floor-planks-2': 37,
-  'floor-planks-3': 39,
-  'floor-mat': 31,
-  rug: 30,
+  'floor-planks-left': 36,
+  'floor-planks-mid': 37,
+  'floor-planks-right': 38,
+  'floor-steps': 39,
+  mat: 66,
   wall: 40,
-  'wall-2': 14,
-  'wall-3': 58,
-  'wall-window': 16,
-  door: 46,
-  table: 54,
-  'table-2': 55,
+  'wall-pillar': 58,
+  'wall-window': 28,
+  'wall-banner': 29,
+  'door-left': 46,
+  'door-right': 47,
+  table: 72,
   chair: 73,
-  shelf: 75,
-  'shelf-2': 63,
-  'shelf-3': 41,
-  planter: 44,
-  barrel: 68,
-  crate: 70,
-  banner: 29,
+  shelf: 63,
+  chest: 89,
+  crate: 101,
+  'rail-left': 76,
+  'rail-mid': 77,
+  'rail-right': 78,
 };
 
 /** Tiles that block movement. Painted on `ground` or `furniture` (SPEC §10.2). */
 export const COLLIDING_TILES = [
   'wall',
-  'wall-2',
-  'wall-3',
+  'wall-pillar',
   'wall-window',
+  'wall-banner',
   'table',
-  'table-2',
   'shelf',
-  'shelf-2',
-  'shelf-3',
-  'planter',
-  'barrel',
+  'chest',
   'crate',
-  'banner',
+  'rail-left',
+  'rail-mid',
+  'rail-right',
 ];
 
 /** Human-readable index map for CREDITS.md (derived from TILES). */
@@ -242,10 +239,10 @@ export function paint(map) {
   };
 }
 
-/** Deterministic pseudo-random 0/1 for floor speckling (stable across runs). */
+/** Deterministic pseudo-random 0/1 for subtle floor speckling (stable across runs). */
 function speckle(col, row) {
   const h = (col * 73856093) ^ (row * 19349663);
-  return (h >>> 3) % 7 === 0;
+  return (h >>> 3) % 11 === 0;
 }
 
 /** Paint plain floor across the whole map. */
@@ -265,37 +262,80 @@ function outerWalls(p, width, height) {
     p.ground(0, row, 'wall');
     p.ground(width - 1, row, 'wall');
   }
-  p.ground(0, 0, 'wall-2');
-  p.ground(width - 1, 0, 'wall-2');
-  p.ground(0, height - 1, 'wall-2');
-  p.ground(width - 1, height - 1, 'wall-2');
+  p.ground(0, 0, 'wall-pillar');
+  p.ground(width - 1, 0, 'wall-pillar');
+  p.ground(0, height - 1, 'wall-pillar');
+  p.ground(width - 1, height - 1, 'wall-pillar');
+}
+
+/** Seamless stone/plank platform rectangle (width ≥ 2). */
+function platformRect(p, col0, row0, col1, row1) {
+  for (let row = row0; row <= row1; row++) {
+    for (let col = col0; col <= col1; col++) {
+      const tile = col === col0 ? 'floor-planks-left' : col === col1 ? 'floor-planks-right' : 'floor-planks-mid';
+      p.ground(col, row, tile);
+    }
+  }
+}
+
+/** Horizontal railing segment on `furniture` (width ≥ 2). */
+function railing(p, col0, col1, row) {
+  for (let col = col0; col <= col1; col++) {
+    const tile = col === col0 ? 'rail-left' : col === col1 ? 'rail-right' : 'rail-mid';
+    p.furniture(col, row, tile);
+  }
 }
 
 /**
- * Enclosed room: walls on `ground`, floor inside, 2-tile door in one wall.
+ * Enclosed room: walls on `ground`, clean floor inside, symmetric 2-tile double door.
  * `side` is the wall the door sits in: 'north' | 'south' | 'west' | 'east';
  * `doorAt` is the first tile (col for north/south, row for west/east).
  */
-function room(p, { col0, row0, col1, row1, side, doorAt, floor = 'floor-dark-1', alt = 'floor-dark-2' }) {
+function room(p, { col0, row0, col1, row1, side, doorAt, floor = 'floor-dark-1', windows = [] }) {
   p.wallRect(col0, row0, col1, row1, 'wall');
-  for (let row = row0 + 1; row <= row1 - 1; row++) {
-    for (let col = col0 + 1; col <= col1 - 1; col++) p.ground(col, row, speckle(col, row) ? alt : floor);
+  for (const [col, row] of [
+    [col0, row0],
+    [col1, row0],
+    [col0, row1],
+    [col1, row1],
+  ]) {
+    p.ground(col, row, 'wall-pillar');
   }
-  if (side === 'north') for (let i = 0; i < 2; i++) p.ground(doorAt + i, row0, 'door');
-  if (side === 'south') for (let i = 0; i < 2; i++) p.ground(doorAt + i, row1, 'door');
-  if (side === 'west') for (let i = 0; i < 2; i++) p.ground(col0, doorAt + i, 'door');
-  if (side === 'east') for (let i = 0; i < 2; i++) p.ground(col1, doorAt + i, 'door');
+  for (const [col, row] of windows) p.ground(col, row, 'wall-window');
+  for (let row = row0 + 1; row <= row1 - 1; row++) {
+    for (let col = col0 + 1; col <= col1 - 1; col++) p.ground(col, row, floor);
+  }
+  if (side === 'north') {
+    p.ground(doorAt - 1, row0, 'wall-pillar');
+    p.ground(doorAt, row0, 'door-left');
+    p.ground(doorAt + 1, row0, 'door-right');
+    p.ground(doorAt + 2, row0, 'wall-pillar');
+  }
+  if (side === 'south') {
+    p.ground(doorAt - 1, row1, 'wall-pillar');
+    p.ground(doorAt, row1, 'door-left');
+    p.ground(doorAt + 1, row1, 'door-right');
+    p.ground(doorAt + 2, row1, 'wall-pillar');
+  }
+  if (side === 'west') {
+    p.ground(col0, doorAt, 'door-left');
+    p.ground(col0, doorAt + 1, 'door-right');
+  }
+  if (side === 'east') {
+    p.ground(col1, doorAt, 'door-left');
+    p.ground(col1, doorAt + 1, 'door-right');
+  }
 }
 
-/** Table block with chairs around it, centred so lanes stay ≥2 tiles wide. */
-function tableWithChairs(p, col0, row0, w, h) {
-  for (let row = row0; row < row0 + h; row++) {
-    for (let col = col0; col < col0 + w; col++) p.furniture(col, row, (col + row) % 2 === 0 ? 'table' : 'table-2');
-  }
+/** Conference table (w×1 wooden tables) with chairs along sides and ends. */
+function conferenceTable(p, col0, row, w) {
   for (let col = col0; col < col0 + w; col++) {
-    p.furniture(col, row0 - 1, 'chair');
-    p.furniture(col, row0 + h, 'chair');
+    p.furniture(col, row, 'table');
+    p.furniture(col, row - 1, 'chair');
+    p.furniture(col, row + 1, 'chair');
   }
+  p.furniture(col0 - 1, row, 'chair');
+  p.furniture(col0 + w, row, 'chair');
 }
 
 /** The starter map: SPEC §10.4. */
@@ -308,86 +348,148 @@ export function buildOffice() {
   floorEverything(p, width, height);
   outerWalls(p, width, height);
 
-  // --- Rooms (walls on `ground`, doors are walkable door tiles) -------------
-  room(p, { col0: 1, row0: 1, col1: 11, row1: 9, side: 'south', doorAt: 5 }); // breakout-1
-  room(p, { col0: 26, row0: 1, col1: 36, row1: 9, side: 'south', doorAt: 30 }); // breakout-2
-  room(p, { col0: 1, row0: 20, col1: 11, row1: 28, side: 'north', doorAt: 5 }); // breakout-3
-  room(p, { col0: 16, row0: 1, col1: 20, row1: 5, side: 'south', doorAt: 18, floor: 'rug', alt: 'rug' }); // silent nook
+  // Outer wall windows and banners (grounded in actual walls, never floating).
+  for (const col of [13, 14, 22, 24]) p.ground(col, 0, 'wall-window');
+  p.ground(23, 0, 'wall-banner');
+  for (const col of [14, 16]) p.ground(col, height - 1, 'wall-window');
+  for (const col of [24, 27, 30, 33]) p.ground(col, height - 1, 'wall-banner');
+  p.ground(0, 15, 'wall-banner');
+  p.ground(width - 1, 15, 'wall-banner');
 
-  // --- Hall floor accents ---------------------------------------------------
-  // Plank landings outside the three north doors, and in front of the stage.
-  p.fill('ground', 12, 6, 15, 10, 'floor-planks-1');
-  p.fill('ground', 21, 6, 25, 10, 'floor-planks-2');
-  p.fill('ground', 16, 11, 24, 13, 'floor-planks-3');
-  // Stage: a plank platform, bottom-right strip, open to the hall. The front
-  // row is the stone "step" tile so the platform reads as raised.
-  p.fill('ground', 20, 22, 37, 28, 'floor-planks-2');
-  p.fill('ground', 20, 22, 37, 22, 'floor-mat');
-  p.fill('ground', 19, 22, 19, 28, 'floor-mat');
-  // Rugs marking the two hall seating corners.
-  p.fill('ground', 13, 15, 15, 16, 'rug');
-  p.fill('ground', 33, 15, 35, 16, 'rug');
-  // A plank walkway from the hall to the stage step.
-  p.fill('ground', 19, 14, 20, 21, 'floor-planks-1');
+  // --- Rooms (walls on `ground`, doors are walkable double-door tiles) ------
+  room(p, {
+    col0: 1,
+    row0: 1,
+    col1: 11,
+    row1: 9,
+    side: 'south',
+    doorAt: 5,
+    windows: [
+      [4, 1],
+      [8, 1],
+    ],
+  }); // breakout-1
+  room(p, {
+    col0: 26,
+    row0: 1,
+    col1: 36,
+    row1: 9,
+    side: 'south',
+    doorAt: 30,
+    windows: [
+      [29, 1],
+      [33, 1],
+    ],
+  }); // breakout-2
+  room(p, {
+    col0: 1,
+    row0: 20,
+    col1: 11,
+    row1: 28,
+    side: 'north',
+    doorAt: 5,
+    windows: [
+      [4, 28],
+      [8, 28],
+    ],
+  }); // breakout-3
+  room(p, { col0: 16, row0: 1, col1: 20, row1: 5, side: 'south', doorAt: 18 }); // silent nook
+
+  // --- Door thresholds + walkways + lounge pads (`ground`) ------------------
+  // Stone thresholds right outside each room's double door.
+  for (const [col, row] of [
+    [5, 10],
+    [6, 10],
+    [30, 10],
+    [31, 10],
+    [18, 6],
+    [19, 6],
+    [5, 19],
+    [6, 19],
+  ]) {
+    p.ground(col, row, 'floor-stones');
+  }
+  // Central arrival plaza around main-door + aligned walkway up to Silent Nook.
+  platformRect(p, 18, 7, 19, 11);
+  platformRect(p, 18, 12, 21, 15);
+  // Lounge floor pads in the hall + east alcove.
+  platformRect(p, 22, 5, 24, 7); // east alcove lounge
+  platformRect(p, 4, 14, 6, 16); // west hall lounge
+  platformRect(p, 13, 15, 15, 17); // mid-west chat corner
+  platformRect(p, 33, 14, 35, 16); // east hall lounge
+  platformRect(p, 14, 24, 16, 26); // south-west reading corner
+  // Stage platform + centered approach landing from the hall.
+  for (const col of [27, 28, 29, 30]) p.ground(col, 19, 'floor-stones');
+  platformRect(p, 27, 20, 30, 21);
+  platformRect(p, 20, 22, 37, 28);
 
   // --- Furniture ------------------------------------------------------------
-  // Breakout tables (3x2) with chairs.
-  tableWithChairs(p, 5, 4, 3, 2); // breakout-1 (door lands on cols 5-6 below)
-  tableWithChairs(p, 30, 4, 3, 2); // breakout-2
-  tableWithChairs(p, 5, 24, 3, 2); // breakout-3 (door lands on cols 5-6 above)
-  // Shelves + storage along the hall walls.
-  for (const col of [22, 23, 24]) p.furniture(col, 2, 'shelf');
-  for (const col of [22, 23, 24]) p.furniture(col, 3, 'crate');
-  p.furniture(13, 2, 'shelf-2');
-  p.furniture(14, 2, 'shelf-2');
-  p.furniture(37, 11, 'shelf-3');
-  p.furniture(37, 12, 'shelf-3');
-  // Hall seating: small tables with chairs, on the rugs.
-  p.furniture(14, 15, 'table');
-  p.furniture(34, 15, 'table');
-  p.furniture(13, 16, 'chair');
-  p.furniture(15, 16, 'chair');
-  p.furniture(33, 16, 'chair');
-  p.furniture(35, 16, 'chair');
-  p.furniture(17, 16, 'table');
-  p.furniture(17, 17, 'chair');
-  // Silent nook: two chairs and a plant on the rug, door tiles kept clear.
+  // Breakout conference tables (3x1 wooden tables with 8 chairs each).
+  conferenceTable(p, 5, 5, 3); // breakout-1
+  conferenceTable(p, 30, 5, 3); // breakout-2
+  conferenceTable(p, 5, 24, 3); // breakout-3
+  // Room corner storage/cabinets (against interior walls, clear of lanes).
+  p.furniture(2, 2, 'shelf');
+  p.furniture(3, 2, 'shelf');
+  p.furniture(10, 2, 'chest');
+  p.furniture(34, 2, 'shelf');
+  p.furniture(35, 2, 'shelf');
+  p.furniture(27, 2, 'crate');
+  p.furniture(2, 27, 'chest');
+  p.furniture(3, 27, 'crate');
+  // Silent nook: cozy 2-person table and woven floor mat, doorway kept clear.
   p.furniture(17, 2, 'chair');
+  p.furniture(18, 2, 'table');
   p.furniture(19, 2, 'chair');
-  p.furniture(18, 4, 'chair');
-  p.furniture(17, 4, 'planter');
-  // West hall: a reading corner with a table, and props along the walls.
-  p.furniture(5, 14, 'table');
+  p.furniture(18, 3, 'mat');
+  // North alcove cabinets/storage tucked cleanly against the north outer wall.
+  p.furniture(13, 1, 'shelf');
+  p.furniture(14, 1, 'shelf');
+  p.furniture(22, 1, 'shelf');
+  p.furniture(23, 1, 'shelf');
+  p.furniture(24, 1, 'shelf');
+  p.furniture(21, 1, 'chest');
+  p.furniture(25, 1, 'crate');
+  // East alcove small chat table on its pad.
+  p.furniture(23, 6, 'table');
+  p.furniture(22, 6, 'chair');
+  p.furniture(24, 6, 'chair');
+  // Hall lounge seating clusters (on their stone pads).
+  p.furniture(5, 15, 'table');
   p.furniture(4, 15, 'chair');
   p.furniture(6, 15, 'chair');
+  p.furniture(5, 14, 'chair');
   p.furniture(5, 16, 'chair');
-  p.furniture(7, 12, 'shelf-2');
-  p.furniture(8, 12, 'shelf-2');
-  p.furniture(9, 17, 'crate');
-  p.furniture(10, 17, 'crate');
-  // Stage furniture: presenter table behind the step, banner on the south wall.
+
+  p.furniture(14, 16, 'table');
+  p.furniture(13, 16, 'chair');
+  p.furniture(15, 16, 'chair');
+  p.furniture(14, 15, 'chair');
+
+  p.furniture(34, 15, 'table');
+  p.furniture(33, 15, 'chair');
+  p.furniture(35, 15, 'chair');
+  p.furniture(34, 14, 'chair');
+  p.furniture(34, 16, 'chair');
+
+  p.furniture(15, 25, 'table');
+  p.furniture(14, 25, 'chair');
+  p.furniture(16, 25, 'chair');
+  // Hall perimeter storage/cabinets along outer walls.
+  p.furniture(1, 11, 'crate');
+  p.furniture(1, 18, 'chest');
+  p.furniture(38, 11, 'shelf');
+  p.furniture(38, 12, 'shelf');
+  p.furniture(38, 18, 'chest');
+  p.furniture(13, 28, 'chest');
+  p.furniture(14, 28, 'crate');
+  // Stage: railing flanking a wide center entrance, presenter desk & chairs.
+  railing(p, 20, 25, 22);
+  railing(p, 32, 37, 22);
   p.furniture(28, 24, 'table');
   p.furniture(29, 24, 'table');
-  p.furniture(28, 23, 'chair');
+  p.furniture(28, 25, 'chair');
   p.furniture(29, 25, 'chair');
-  for (const col of [24, 25, 26]) p.furniture(col, 21, 'banner');
-  // Plants, clear of walking lanes and doors.
-  for (const [col, row] of [
-    [2, 11],
-    [10, 11],
-    [12, 12],
-    [25, 11],
-    [16, 21],
-    [36, 20],
-    [30, 20],
-    [13, 28],
-    [18, 28],
-  ]) {
-    p.furniture(col, row, 'planter');
-  }
-  // Barrels in the west alcove (decor, colliding).
-  p.furniture(2, 28, 'barrel');
-  p.furniture(3, 28, 'barrel');
 
   // --- Zones (SPEC §10.2 / §8.3) -------------------------------------------
   // Hall = the open floor between the north rooms and the stage.

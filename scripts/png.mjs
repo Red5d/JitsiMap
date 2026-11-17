@@ -43,34 +43,39 @@ function makeChunk(type, data) {
 // ---------------------------------------------------------------- encoder
 
 /**
- * Encode an 8-bit truecolor RGB image as a PNG.
+ * Encode an 8-bit truecolor image (RGB or RGBA) as a PNG.
  * @param {number} width
  * @param {number} height
- * @param {Buffer|Uint8Array} rgb Row-major RGB bytes, length width*height*3.
+ * @param {Buffer|Uint8Array} pixels Row-major pixel bytes.
+ * @param {3|4} channels 3 = RGB (colorType 2), 4 = RGBA (colorType 6).
  * @returns {Buffer} PNG file bytes.
  */
-export function encodePngRgb(width, height, rgb) {
+function encodePng(width, height, pixels, channels) {
+  const fn = channels === 4 ? 'encodePngRgba' : 'encodePngRgb';
   if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
-    throw new Error(`encodePngRgb: bad dimensions ${width}x${height}`);
+    throw new Error(`${fn}: bad dimensions ${width}x${height}`);
   }
-  if (rgb.length !== width * height * 3) {
-    throw new Error(`encodePngRgb: expected ${width * height * 3} bytes, got ${rgb.length}`);
+  const expected = width * height * channels;
+  if (pixels.length !== expected) {
+    throw new Error(`${fn}: expected ${expected} bytes, got ${pixels.length}`);
   }
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8; // bit depth
-  ihdr[9] = 2; // color type: truecolor RGB
+  ihdr[9] = channels === 4 ? 6 : 2; // color type: 6 = RGBA, 2 = RGB
   ihdr[10] = 0; // compression: deflate
   ihdr[11] = 0; // filter: adaptive
   ihdr[12] = 0; // interlace: none
 
   // Filter byte 0 (None) on every scanline.
-  const raw = Buffer.alloc(height * (1 + width * 3));
+  const stride = width * channels;
+  const raw = Buffer.alloc(height * (1 + stride));
+  const src = Buffer.isBuffer(pixels) ? pixels : Buffer.from(pixels.buffer, pixels.byteOffset, pixels.byteLength);
   for (let y = 0; y < height; y++) {
-    const rowStart = y * (1 + width * 3);
+    const rowStart = y * (1 + stride);
     raw[rowStart] = 0;
-    rgb.copy(raw, rowStart + 1, y * width * 3, (y + 1) * width * 3);
+    src.copy(raw, rowStart + 1, y * stride, (y + 1) * stride);
   }
 
   return Buffer.concat([
@@ -79,6 +84,28 @@ export function encodePngRgb(width, height, rgb) {
     makeChunk('IDAT', deflateSync(raw, { level: 9 })),
     makeChunk('IEND', Buffer.alloc(0)),
   ]);
+}
+
+/**
+ * Encode an 8-bit truecolor RGB image as a PNG.
+ * @param {number} width
+ * @param {number} height
+ * @param {Buffer|Uint8Array} rgb Row-major RGB bytes, length width*height*3.
+ * @returns {Buffer} PNG file bytes.
+ */
+export function encodePngRgb(width, height, rgb) {
+  return encodePng(width, height, rgb, 3);
+}
+
+/**
+ * Encode an 8-bit truecolor RGBA image as a PNG.
+ * @param {number} width
+ * @param {number} height
+ * @param {Buffer|Uint8Array} rgba Row-major RGBA bytes, length width*height*4.
+ * @returns {Buffer} PNG file bytes.
+ */
+export function encodePngRgba(width, height, rgba) {
+  return encodePng(width, height, rgba, 4);
 }
 
 // ---------------------------------------------------------------- decoder

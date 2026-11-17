@@ -42,7 +42,7 @@ export interface SceneData {
   debugZones?: boolean;
 }
 
-const DEPTH = { ground: 0, furniture: 1, zones: 25, above: 30, hud: 100 } as const;
+const DEPTH = { ground: 0, furniture: 1, zones: 5, above: 30, hud: 100 } as const;
 
 export class MapScene extends Phaser.Scene {
   private mapData!: GameMapData;
@@ -168,14 +168,18 @@ export class MapScene extends Phaser.Scene {
   /** Zone name labels; optional subtle debug outlines. */
   private renderZones(): void {
     for (const z of this.mapData.zones) {
+      const color = z.silent ? '#bce6ff' : z.stage ? '#ffe8a3' : '#f4f4f8';
       this.add
-        .text(z.x + z.w / 2, z.y + 14, z.label ?? z.id, {
+        .text(z.x + z.w / 2, z.y + 6, z.label ?? z.id, {
           fontFamily: 'system-ui, sans-serif',
           fontSize: '13px',
-          color: '#ffffff',
+          fontStyle: 'bold',
+          color,
+          backgroundColor: 'rgba(14, 14, 22, 0.76)',
+          padding: { x: 8, y: 3 },
         })
         .setOrigin(0.5, 0)
-        .setAlpha(0.45)
+        .setAlpha(0.95)
         .setDepth(DEPTH.zones)
         .setResolution(2);
       if (this.debugZones) {
